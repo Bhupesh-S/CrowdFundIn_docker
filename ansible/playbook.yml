@@ -1,0 +1,126 @@
+# ═══════════════════════════════════════════════════════════════
+# Ansible — Application Deployment Playbook
+# Automates Docker build, deploy, and verification
+# ═══════════════════════════════════════════════════════════════
+
+---
+- name: Deploy DevOps Demo Application
+  hosts: app_servers
+  become: yes
+
+  vars:
+    app_name: devops-app
+    app_port: 3000
+    docker_image: "devops-app:optimized"
+    project_dir: /opt/devops-demo
+
+  tasks:
+    # ── Pre-requisites ─────────────────────────────────────────
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+          - python3-pip
+          - curl
+        state: present
+        update_cache: yes
+      tags: setup
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+      tags: setup
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      tags: setup
+
+    # ── Deploy Application ─────────────────────────────────────
+    - name: Create project directory
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: '0755'
+      tags: deploy
+
+    - name: Copy application files
+      copy:
+        src: "{{ playbook_dir }}/../"
+        dest: "{{ project_dir }}/"
+        mode: '0644'
+      tags: deploy
+
+    - name: Build optimized Docker image
+      docker_image:
+        name: "{{ docker_image }}"
+        build:
+          path: "{{ project_dir }}"
+          dockerfile: docker/Dockerfile.optimized
+        source: build
+        force_source: yes
+      tags: deploy
+
+    - name: Start application stack with Docker Compose
+      docker_compose:
+        project_src: "{{ project_dir }}"
+        state: present
+        build: yes
+      tags: deploy
+
+    # ── Verification ───────────────────────────────────────────
+    - name: Wait for application to start
+      wait_for:
+        port: "{{ app_port }}"
+        delay: 5
+        timeout: 30
+      tags: verify
+
+    - name: Health check
+      uri:
+        url: "http://localhost:{{ app_port }}/health"
+        return_content: yes
+      register: health_result
+      tags: verify
+
+    - name: Display health check result
+      debug:
+        msg: "App Health: {{ health_result.json }}"
+      tags: verify
+
+    - name: Verify non-root user in container
+      command: docker exec {{ app_name }} whoami
+      register: whoami_result
+      tags: verify
+
+    - name: Display running user
+      debug:
+        msg: "Container runs as: {{ whoami_result.stdout }}"
+      tags: verify
+
+    # ── Monitoring Check ───────────────────────────────────────
+    - name: Verify Prometheus is accessible
+      uri:
+        url: "http://localhost:9090/-/healthy"
+        return_content: yes
+      register: prom_result
+      tags: verify
+
+    - name: Verify Grafana is accessible
+      uri:
+        url: "http://localhost:3001/api/health"
+        return_content: yes
+      register: grafana_result
+      tags: verify
+
+    - name: Display monitoring status
+      debug:
+        msg: |
+          Prometheus: {{ prom_result.status }}
+          Grafana: {{ grafana_result.status }}
+      tags: verify

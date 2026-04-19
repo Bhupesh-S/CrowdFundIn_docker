@@ -1,0 +1,73 @@
+# ═══════════════════════════════════════════════════════════════
+# Docker Compose — DevOps Demo Stack
+# App + Prometheus + Grafana
+# ═══════════════════════════════════════════════════════════════
+
+version: '3.8'
+
+services:
+  # ── Node.js Application ─────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.optimized
+    container_name: devops-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - devops-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Prometheus (Monitoring) ─────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: devops-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+    restart: unless-stopped
+    networks:
+      - devops-network
+    depends_on:
+      - app
+
+  # ── Grafana (Dashboards) ────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: devops-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    restart: unless-stopped
+    networks:
+      - devops-network
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  devops-network:
+    driver: bridge

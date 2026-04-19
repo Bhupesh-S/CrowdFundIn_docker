@@ -1,0 +1,14 @@
+{
+  "name": "devops-demo-app",
+  "version": "1.0.0",
+  "description": "Node.js app for DevOps pipeline demo with monitoring",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "prom-client": "^15.1.0"
+  }
+}

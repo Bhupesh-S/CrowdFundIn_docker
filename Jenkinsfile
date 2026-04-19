@@ -90,6 +90,7 @@ pipeline {
             steps {
                 echo '🚀 Deploying application stack...'
                 sh 'docker compose down || true'
+                sh 'docker rm -f devops-app devops-prometheus devops-grafana || true'
                 sh 'docker compose up -d --build'
             }
         }

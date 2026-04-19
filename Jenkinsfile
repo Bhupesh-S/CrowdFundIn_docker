@@ -92,6 +92,10 @@ pipeline {
                 sh 'docker compose down || true'
                 sh 'docker rm -f devops-app devops-prometheus devops-grafana || true'
                 sh 'docker compose up -d --build'
+                sh 'docker cp prometheus/prometheus.yml devops-prometheus:/etc/prometheus/prometheus.yml'
+                sh 'docker cp grafana/provisioning devops-grafana:/etc/grafana/'
+                sh 'docker cp grafana/dashboards devops-grafana:/var/lib/grafana/'
+                sh 'docker restart devops-prometheus devops-grafana'
             }
         }
 

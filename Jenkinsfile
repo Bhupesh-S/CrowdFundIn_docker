@@ -26,7 +26,7 @@ pipeline {
             steps {
                 echo '📦 Installing Node.js dependencies...'
                 dir('app') {
-                    sh 'npm install'
+                    sh 'docker run --rm -v ${WORKSPACE}/app:/app -w /app node:18-alpine npm install'
                 }
             }
         }
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 echo '🧪 Running tests...'
                 dir('app') {
-                    sh 'npm test || true'
+                    sh 'docker run --rm -v ${WORKSPACE}/app:/app -w /app node:18-alpine npm test || true'
                 }
             }
         }
@@ -47,13 +47,13 @@ pipeline {
                 stage('Build Original') {
                     steps {
                         echo '🐳 Building original Docker image...'
-                        sh "docker build -f docker/Dockerfile.original -t ${DOCKER_IMAGE}:original ."
+                        sh "docker build -f docker-optimize/Dockerfile.original -t ${DOCKER_IMAGE}:original ."
                     }
                 }
                 stage('Build Optimized') {
                     steps {
                         echo '🐳 Building optimized Docker image...'
-                        sh "docker build -f docker/Dockerfile.optimized -t ${DOCKER_IMAGE}:optimized ."
+                        sh "docker build -f docker-optimize/Dockerfile.optimized -t ${DOCKER_IMAGE}:optimized ."
                         sh "docker tag ${DOCKER_IMAGE}:optimized ${DOCKER_IMAGE}:${DOCKER_TAG}"
                     }
                 }

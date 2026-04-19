@@ -101,15 +101,17 @@ pipeline {
 
         // ── Stage 8: Verify Deployment ────────────────────────
         stage('Verify') {
-            steps {
-                echo '✅ Verifying deployment...'
-                sh 'sleep 10'
-                sh 'curl -f http://localhost:3000/health || exit 1'
-                sh 'curl -f http://localhost:9090/-/healthy || exit 1'
-                sh 'curl -f http://localhost:3001/api/health || exit 1'
-                echo '✅ All services are running!'
-            }
-        }
+    steps {
+        echo '✅ Verifying deployment...'
+        sh 'sleep 15'
+
+        sh 'curl -f http://devops-app:3000/health || exit 1'
+        sh 'curl -f http://devops-prometheus:9090/-/healthy || exit 1'
+        sh 'curl -f http://devops-grafana:3000/api/health || exit 1'
+
+        echo '✅ All services are running!'
+    }
+}
     }
 
     post {

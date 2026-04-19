@@ -10,7 +10,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: docker/Dockerfile.optimized
+      dockerfile: docker-optimize/Dockerfile.optimized
     container_name: devops-app
     ports:
       - "3000:3000"

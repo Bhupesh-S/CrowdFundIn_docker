@@ -36,7 +36,13 @@ pipeline {
             steps {
                 echo '🧪 Running tests...'
                 dir('app') {
-                    sh 'npm test || true'
+                    sh '''
+                        node index.js > /dev/null 2>&1 &
+                        NODE_PID=$!
+                        sleep 2
+                        npm test || true
+                        kill $NODE_PID || true
+                    '''
                 }
             }
         }

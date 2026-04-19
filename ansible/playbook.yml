@@ -6,40 +6,17 @@
 ---
 - name: Deploy DevOps Demo Application
   hosts: app_servers
-  become: yes
+  become: no
 
   vars:
     app_name: devops-app
     app_port: 3000
     docker_image: "devops-app:optimized"
-    project_dir: /opt/devops-demo
+    project_dir: /tmp/devops-ansible
 
   tasks:
     # ── Pre-requisites ─────────────────────────────────────────
-    - name: Install required packages
-      apt:
-        name:
-          - docker.io
-          - docker-compose
-          - python3-pip
-          - curl
-        state: present
-        update_cache: yes
-      tags: setup
-
-    - name: Start and enable Docker service
-      service:
-        name: docker
-        state: started
-        enabled: yes
-      tags: setup
-
-    - name: Add user to docker group
-      user:
-        name: "{{ ansible_user }}"
-        groups: docker
-        append: yes
-      tags: setup
+    # Removed setup tasks requiring root, relying on existing docker installation.
 
     # ── Deploy Application ─────────────────────────────────────
     - name: Create project directory
@@ -56,21 +33,10 @@
         mode: '0644'
       tags: deploy
 
-    - name: Build optimized Docker image
-      docker_image:
-        name: "{{ docker_image }}"
-        build:
-          path: "{{ project_dir }}"
-          dockerfile: docker/Dockerfile.optimized
-        source: build
-        force_source: yes
-      tags: deploy
-
     - name: Start application stack with Docker Compose
-      docker_compose:
-        project_src: "{{ project_dir }}"
-        state: present
-        build: yes
+      command: docker compose up -d --build
+      args:
+        chdir: "{{ project_dir }}"
       tags: deploy
 
     # ── Verification ───────────────────────────────────────────

@@ -26,7 +26,7 @@ pipeline {
             steps {
                 echo '📦 Installing Node.js dependencies...'
                 dir('app') {
-                    sh 'docker run --rm -v ${WORKSPACE}/app:/app -w /app node:18-alpine npm install'
+                    sh 'npm install'
                 }
             }
         }
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 echo '🧪 Running tests...'
                 dir('app') {
-                    sh 'docker run --rm -v ${WORKSPACE}/app:/app -w /app node:18-alpine npm test || true'
+                    sh 'npm test || true'
                 }
             }
         }

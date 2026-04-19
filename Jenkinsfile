@@ -105,9 +105,9 @@ pipeline {
         echo '✅ Verifying deployment...'
         sh 'sleep 15'
 
-        sh 'curl -f http://devops-app:3000/health || exit 1'
-        sh 'curl -f http://devops-prometheus:9090/-/healthy || exit 1'
-        sh 'curl -f http://devops-grafana:3000/api/health || exit 1'
+        sh 'docker exec devops-app wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1'
+        sh 'docker exec devops-prometheus wget --no-verbose --tries=1 --spider http://127.0.0.1:9090/-/healthy || exit 1'
+        sh 'docker exec devops-grafana wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1'
 
         echo '✅ All services are running!'
     }

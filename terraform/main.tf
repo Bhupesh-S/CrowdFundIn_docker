@@ -18,16 +18,16 @@ provider "docker" {
 }
 
 # ── Variables ──────────────────────────────────────────────────
-variable "app_port" {
-  description = "External port for the app"
+variable "frontend_port" {
+  description = "External port for the frontend"
   type        = number
   default     = 3000
 }
 
-variable "app_image" {
-  description = "Docker image for the app"
-  type        = string
-  default     = "devops-app:optimized"
+variable "backend_port" {
+  description = "External port for the backend"
+  type        = number
+  default     = 5000
 }
 
 variable "environment" {
@@ -41,23 +41,44 @@ resource "docker_network" "devops_network" {
   name = "devops-terraform-network"
 }
 
-# ── Application Container ─────────────────────────────────────
-resource "docker_image" "app" {
-  name = var.app_image
+# ── MongoDB Container ─────────────────────────────────────────
+resource "docker_image" "mongo" {
+  name = "mongo:6"
 }
 
-resource "docker_container" "app" {
-  name  = "devops-app-terraform"
-  image = docker_image.app.image_id
+resource "docker_container" "mongo" {
+  name  = "crowdfundin-mongo-terraform"
+  image = docker_image.mongo.image_id
 
   ports {
-    internal = 3000
-    external = var.app_port
+    internal = 27017
+    external = 27017
+  }
+
+  networks_advanced {
+    name = docker_network.devops_network.name
+  }
+
+  restart = "unless-stopped"
+}
+
+# ── Backend Container ─────────────────────────────────────────
+resource "docker_image" "backend" {
+  name = "crowdfundin-backend:latest"
+}
+
+resource "docker_container" "backend" {
+  name  = "crowdfundin-backend-terraform"
+  image = docker_image.backend.image_id
+
+  ports {
+    internal = 5000
+    external = var.backend_port
   }
 
   env = [
-    "NODE_ENV=${var.environment}",
-    "PORT=3000"
+    "MONGODB_URI=mongodb://mongo:27017/crowdfundin",
+    "JWT_SECRET=mysecretkey123"
   ]
 
   networks_advanced {
@@ -65,6 +86,29 @@ resource "docker_container" "app" {
   }
 
   restart = "unless-stopped"
+  depends_on = [docker_container.mongo]
+}
+
+# ── Frontend Container ────────────────────────────────────────
+resource "docker_image" "frontend" {
+  name = "crowdfundin-frontend:latest"
+}
+
+resource "docker_container" "frontend" {
+  name  = "crowdfundin-frontend-terraform"
+  image = docker_image.frontend.image_id
+
+  ports {
+    internal = 80
+    external = var.frontend_port
+  }
+
+  networks_advanced {
+    name = docker_network.devops_network.name
+  }
+
+  restart = "unless-stopped"
+  depends_on = [docker_container.backend]
 }
 
 # ── Prometheus Container ───────────────────────────────────────
@@ -91,8 +135,7 @@ resource "docker_container" "prometheus" {
   }
 
   restart = "unless-stopped"
-
-  depends_on = [docker_container.app]
+  depends_on = [docker_container.backend]
 }
 
 # ── Grafana Container ─────────────────────────────────────────
@@ -119,14 +162,18 @@ resource "docker_container" "grafana" {
   }
 
   restart = "unless-stopped"
-
   depends_on = [docker_container.prometheus]
 }
 
 # ── Outputs ────────────────────────────────────────────────────
-output "app_url" {
-  value       = "http://localhost:${var.app_port}"
-  description = "URL to access the application"
+output "frontend_url" {
+  value       = "http://localhost:${var.frontend_port}"
+  description = "URL to access the frontend"
+}
+
+output "backend_url" {
+  value       = "http://localhost:${var.backend_port}"
+  description = "URL to access the backend"
 }
 
 output "prometheus_url" {
@@ -137,8 +184,4 @@ output "prometheus_url" {
 output "grafana_url" {
   value       = "http://localhost:3001"
   description = "URL to access Grafana"
-}
-
-output "app_container_id" {
-  value = docker_container.app.id
 }

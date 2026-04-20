@@ -7,9 +7,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE     = 'devops-app'
+        BACKEND_IMAGE    = 'crowdfundin-backend'
+        FRONTEND_IMAGE   = 'crowdfundin-frontend'
         DOCKER_TAG       = "${env.BUILD_NUMBER}"
-        APP_PORT         = '3000'
     }
 
     stages {
@@ -25,8 +25,11 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo '📦 Installing Node.js dependencies...'
-                dir('app') {
+                dir('backend') {
                     sh 'npm install'
+                }
+                dir('frontend') {
+                    sh 'npm install --legacy-peer-deps || npm install'
                 }
             }
         }
@@ -35,14 +38,17 @@ pipeline {
         stage('Test') {
             steps {
                 echo '🧪 Running tests...'
-                dir('app') {
+                dir('backend') {
                     sh '''
-                        node index.js > /dev/null 2>&1 &
+                        node server.js > /dev/null 2>&1 &
                         NODE_PID=$!
                         sleep 2
                         npm test || true
                         kill $NODE_PID || true
                     '''
+                }
+                dir('frontend') {
+                    sh 'CI=true npm test || true'
                 }
             }
         }
@@ -50,17 +56,18 @@ pipeline {
         // ── Stage 4: Build Docker Images ──────────────────────
         stage('Docker Build') {
             parallel {
-                stage('Build Original') {
+                stage('Build Backend') {
                     steps {
-                        echo '🐳 Building original Docker image...'
-                        sh "docker build -f docker-optimize/Dockerfile.original -t ${DOCKER_IMAGE}:original ."
+                        echo '🐳 Building Backend Docker image...'
+                        sh "docker build -f backend/Dockerfile -t ${BACKEND_IMAGE}:${DOCKER_TAG} backend/"
+                        sh "docker tag ${BACKEND_IMAGE}:${DOCKER_TAG} ${BACKEND_IMAGE}:latest"
                     }
                 }
-                stage('Build Optimized') {
+                stage('Build Frontend') {
                     steps {
-                        echo '🐳 Building optimized Docker image...'
-                        sh "docker build -f docker-optimize/Dockerfile.optimized -t ${DOCKER_IMAGE}:optimized ."
-                        sh "docker tag ${DOCKER_IMAGE}:optimized ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        echo '🐳 Building Frontend Docker image...'
+                        sh "docker build -f frontend/Dockerfile -t ${FRONTEND_IMAGE}:${DOCKER_TAG} frontend/"
+                        sh "docker tag ${FRONTEND_IMAGE}:${DOCKER_TAG} ${FRONTEND_IMAGE}:latest"
                     }
                 }
             }
@@ -69,8 +76,9 @@ pipeline {
         // ── Stage 5: Image Size Comparison ────────────────────
         stage('Image Size Report') {
             steps {
-                echo '📊 Comparing image sizes...'
-                sh "docker images ${DOCKER_IMAGE} --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}'"
+                echo '📊 Image sizes...'
+                sh "docker images ${BACKEND_IMAGE} --format 'table {{.Repository}}:{{.Tag}}\\t{{.Size}}'"
+                sh "docker images ${FRONTEND_IMAGE} --format 'table {{.Repository}}:{{.Tag}}\\t{{.Size}}'"
             }
         }
 
@@ -79,8 +87,8 @@ pipeline {
             steps {
                 echo '🔒 Scanning for vulnerabilities...'
                 sh '''
-                    docker scout cves ${DOCKER_IMAGE}:optimized --format json > scan_report.json || \
-                    echo "Docker Scout requires login — skipping scan"
+                    docker scout cves ${BACKEND_IMAGE}:latest --format json > backend_scan_report.json || echo "Skipping scan"
+                    docker scout cves ${FRONTEND_IMAGE}:latest --format json > frontend_scan_report.json || echo "Skipping scan"
                 '''
             }
         }
@@ -90,28 +98,26 @@ pipeline {
             steps {
                 echo '🚀 Deploying application stack...'
                 sh 'docker compose down || true'
-                sh 'docker rm -f devops-app devops-prometheus devops-grafana || true'
+                sh 'docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana crowdfundin-mongo || true'
                 sh 'docker compose up -d --build'
                 sh 'docker cp prometheus/prometheus.yml devops-prometheus:/etc/prometheus/prometheus.yml'
-                sh 'docker cp grafana/provisioning devops-grafana:/etc/grafana/'
-                sh 'docker cp grafana/dashboards devops-grafana:/var/lib/grafana/'
+                sh 'docker cp grafana/provisioning devops-grafana:/etc/grafana/ || true'
+                sh 'docker cp grafana/dashboards devops-grafana:/var/lib/grafana/ || true'
                 sh 'docker restart devops-prometheus devops-grafana'
             }
         }
 
         // ── Stage 8: Verify Deployment ────────────────────────
         stage('Verify') {
-    steps {
-        echo '✅ Verifying deployment...'
-        sh 'sleep 15'
-
-        sh 'docker exec devops-app wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1'
-        sh 'docker exec devops-prometheus wget --no-verbose --tries=1 --spider http://127.0.0.1:9090/-/healthy || exit 1'
-        sh 'docker exec devops-grafana wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1'
-
-        echo '✅ All services are running!'
-    }
-}
+            steps {
+                echo '✅ Verifying deployment...'
+                sh 'sleep 15'
+                sh 'docker exec crowdfundin-backend wget --no-verbose --tries=1 --spider http://127.0.0.1:5000/api/health || exit 1'
+                sh 'docker exec devops-prometheus wget --no-verbose --tries=1 --spider http://127.0.0.1:9090/-/healthy || exit 1'
+                sh 'docker exec devops-grafana wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1'
+                echo '✅ All services are running!'
+            }
+        }
     }
 
     post {

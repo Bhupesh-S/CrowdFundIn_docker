@@ -1,0 +1,134 @@
+/* Campaign Owner Profile Styles */
+.profile-picture-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-picture-container img {
+  transition: all 0.3s ease;
+}
+
+.profile-picture-container img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Form styling for profile edit */
+.edit-profile-form .form-label {
+  font-weight: 600;
+  color: var(--gray-700, #374151);
+  margin-bottom: 0.5rem;
+}
+
+.edit-profile-form .form-control {
+  border: 2px solid var(--gray-200, #e5e7eb);
+  border-radius: 8px;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.edit-profile-form .form-control:focus {
+  outline: none;
+  border-color: var(--primary-500, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edit-profile-form .form-control.is-invalid {
+  border-color: var(--red-500, #ef4444);
+}
+
+.edit-profile-form .invalid-feedback {
+  color: var(--red-500, #ef4444);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Social media links styling */
+.social-media-link {
+  transition: all 0.3s ease;
+}
+
+.social-media-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile display cards */
+.profile-display-card {
+  transition: all 0.3s ease;
+  border: 1px solid var(--gray-200, #e5e7eb);
+  border-radius: 12px;
+}
+
+.profile-display-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Button styles for profile actions */
+.profile-action-btn {
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading and error states */
+.profile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.profile-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  color: var(--red-600, #dc2626);
+}
+
+/* Preview styles */
+.profile-preview {
+  background: var(--gray-50, #f9fafb);
+  border: 2px dashed var(--gray-300, #d1d5db);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.profile-preview h5 {
+  color: var(--gray-800, #1f2937);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .profile-picture-container {
+    margin-bottom: 1rem;
+  }
+  
+  .edit-profile-form .row {
+    margin: 0;
+  }
+  
+  .edit-profile-form .col-md-4,
+  .edit-profile-form .col-md-6 {
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+}

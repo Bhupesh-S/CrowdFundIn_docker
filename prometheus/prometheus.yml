@@ -8,9 +8,9 @@ global:
 
 scrape_configs:
   # ── Monitor the Node.js App ──────────────────────────────────
-  - job_name: 'devops-app'
+  - job_name: 'crowdfundin-backend'
     static_configs:
-      - targets: ['app:3000']
+      - targets: ['backend:5000']
     metrics_path: /metrics
     scrape_interval: 5s
 

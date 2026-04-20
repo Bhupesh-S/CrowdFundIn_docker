@@ -1,0 +1,387 @@
+/* Register Page Styles - Extends Login styles */
+@import './Login.css';
+
+/* Admin Navbar Styles for Signup Page */
+.admin-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 0;
+}
+
+.admin-navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-back-home {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.admin-back-home:hover {
+  color: #5a67d8;
+  background: rgba(102, 126, 234, 0.1);
+  border-color: rgba(102, 126, 234, 0.2);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.admin-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #667eea;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.admin-navbar-brand svg {
+  color: #667eea;
+}
+
+/* Role Selection */
+.role-selection {
+  margin-bottom: 1.5rem;
+}
+
+.role-selection-label {
+  display: block;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.role-option {
+  position: relative;
+}
+
+.role-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.role-label {
+  display: block;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.role-input:checked + .role-label {
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+}
+
+.role-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.role-description {
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.3;
+}
+
+.role-input:checked + .role-label .role-description {
+  color: #555;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+  margin-top: 0.5rem;
+}
+
+.strength-bar {
+  height: 4px;
+  background: #e9ecef;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.strength-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.strength-weak {
+  background: #dc3545;
+  width: 25%;
+}
+
+.strength-fair {
+  background: #fd7e14;
+  width: 50%;
+}
+
+.strength-good {
+  background: #ffc107;
+  width: 75%;
+}
+
+.strength-strong {
+  background: #28a745;
+  width: 100%;
+}
+
+.strength-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.strength-text.weak {
+  color: #dc3545;
+}
+
+.strength-text.fair {
+  color: #fd7e14;
+}
+
+.strength-text.good {
+  color: #ffc107;
+}
+
+.strength-text.strong {
+  color: #28a745;
+}
+
+/* Terms and Conditions */
+.terms-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.terms-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.terms-text {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.terms-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.terms-link:hover {
+  text-decoration: underline;
+}
+
+/* Registration Success */
+.registration-success {
+  text-align: center;
+  padding: 2rem;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #28a745;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: white;
+  font-size: 2rem;
+}
+
+.success-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #28a745;
+  margin-bottom: 1rem;
+}
+
+.success-message {
+  color: #666;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.continue-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.continue-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+/* Welcome Message */
+.welcome-message {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.welcome-text {
+  color: #667eea;
+  font-weight: 600;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Form Validation States */
+.form-input:valid {
+  border-color: #28a745;
+}
+
+.form-input:invalid:not(:focus):not(:placeholder-shown) {
+  border-color: #dc3545;
+}
+
+.validation-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+}
+
+.validation-icon.valid {
+  color: #28a745;
+}
+
+.validation-icon.invalid {
+  color: #dc3545;
+}
+
+/* Loading Overlay */
+.form-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  z-index: 10;
+}
+
+.form-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-page {
+    padding: 1rem;
+  }
+
+  .auth-container {
+    max-width: 100%;
+  }
+
+  .auth-header {
+    padding: 2rem 1.5rem 1rem;
+  }
+
+  .auth-title {
+    font-size: 1.75rem;
+  }
+
+  .auth-form {
+    padding: 1.5rem;
+  }
+
+  .role-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-header {
+    padding: 1.5rem 1rem 0.75rem;
+  }
+
+  .auth-title {
+    font-size: 1.5rem;
+  }
+
+  .auth-form {
+    padding: 1rem;
+  }
+
+  .form-input {
+    padding: 0.875rem 1rem;
+  }
+
+  .submit-btn {
+    padding: 0.875rem;
+  }
+
+  .terms-checkbox {
+    padding: 0.75rem;
+  }
+}

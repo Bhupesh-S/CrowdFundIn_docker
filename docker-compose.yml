@@ -1,32 +1,40 @@
-# ═══════════════════════════════════════════════════════════════
-# Docker Compose — DevOps Demo Stack
-# CrowdFundIn App + Prometheus + Grafana
-# ═══════════════════════════════════════════════════════════════
-
-version: '3.8'
-
 services:
-  # ── Backend Application ──────────────────────────────────────
+
+  # ── Backend ────────────────────────────────────────────────
+  # MongoDB Atlas is used — no local mongo container needed.
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: crowdfundin-backend:latest
     container_name: crowdfundin-backend
     ports:
       - "5000:5000"
+
+    # Load all vars from backend/.env (includes MONGODB_URI, JWT_SECRET, etc.)
     env_file:
       - ./backend/.env
+
+    # Allow overriding individual vars via shell environment or CI secrets
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+
     volumes:
       - backend-uploads:/app/uploads
+
     restart: unless-stopped
     networks:
       - devops-network
 
-  # ── Frontend Application ─────────────────────────────────────
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 6
+      start_period: 20s
+
+
+  # ── Frontend ───────────────────────────────────────────────
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: crowdfundin-frontend:latest
     container_name: crowdfundin-frontend
     ports:
       - "3000:8080"
@@ -34,46 +42,56 @@ services:
     networks:
       - devops-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
-  # ── Prometheus (Monitoring) ─────────────────────────────────
+
+  # ── Prometheus ─────────────────────────────────────────────
   prometheus:
     image: prom/prometheus:latest
     container_name: devops-prometheus
     ports:
       - "9090:9090"
+
     volumes:
       - prometheus-data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      - ./prometheus:/etc/prometheus
+
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'
+
     restart: unless-stopped
     networks:
       - devops-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
-  # ── Grafana (Dashboards) ────────────────────────────────────
+
+  # ── Grafana ────────────────────────────────────────────────
   grafana:
     image: grafana/grafana:latest
     container_name: devops-grafana
     ports:
       - "3001:3000"
+
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_USERS_ALLOW_SIGN_UP=false
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_USERS_ALLOW_SIGN_UP: false
+
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
+
     restart: unless-stopped
     networks:
       - devops-network
     depends_on:
       - prometheus
+
 
 volumes:
   backend-uploads:

@@ -35,15 +35,17 @@ pipeline {
         }
 
         // ─────────────────────────────────────────────
+        // NOTE: Backend test only runs a smoke check (env + syntax).
+        // We do NOT start server.js here because it requires a live
+        // MongoDB Atlas connection which is only available at runtime
+        // inside the Docker network. Frontend tests run in CI mode.
         stage('Test') {
             steps {
                 echo '🧪 Running tests...'
                 dir('backend') {
                     sh '''
-                        timeout 20s node server.js &
-                        sleep 3
-                        npm test || true
-                        pkill -f "node server.js" || true
+                        node -e "require('./package.json'); console.log('✅ Backend package.json OK')"
+                        node --check server.js && echo "✅ Backend syntax OK"
                     '''
                 }
                 dir('frontend') {
@@ -102,16 +104,9 @@ pipeline {
             steps {
                 echo '⚙️ Preparing runtime configs...'
                 sh '''
-                    mkdir -p backend
+                    rm -rf prometheus
                     mkdir -p prometheus
 
-                    # ✅ Backend ENV (Mongo FIX)
-                    cat <<EOF > backend/.env
-PORT=5000
-MONGO_URI=mongodb://crowdfundin-mongo:27017/app
-EOF
-
-                    # ✅ Prometheus config (CRITICAL FIX)
                     cat <<EOF > prometheus/prometheus.yml
 global:
   scrape_interval: 15s
@@ -121,20 +116,28 @@ scrape_configs:
     static_configs:
       - targets: ['crowdfundin-backend:5000']
 EOF
+
+                    ls -l prometheus
+                    file prometheus/prometheus.yml
+                    echo "✅ prometheus.yml created"
                 '''
             }
         }
 
         // ─────────────────────────────────────────────
+        // Uses pre-built :latest images (no --build flag) so Docker
+        // Compose picks up the images built in the Docker Build stage.
+        // No local mongo container — MongoDB Atlas is used via MONGODB_URI.
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying stack...'
                 sh '''
                     docker compose down --remove-orphans --volumes || true
 
-                    docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana crowdfundin-mongo || true
+                    # Remove any stale named containers (no mongo — Atlas is used)
+                    docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true
 
-                    docker compose up -d --build
+                    docker compose up -d
                 '''
             }
         }
@@ -145,17 +148,20 @@ EOF
                 echo '🔍 Verifying services...'
 
                 sh '''
-                    # Wait for backend
-                    for i in {1..12}; do
-                        docker exec crowdfundin-backend wget -q --spider http://127.0.0.1:5000/api/health && break
-                        echo "Waiting for backend..."
+                    echo "⏳ Waiting for backend to be ready..."
+                    for i in $(seq 1 15); do
+                        if docker exec crowdfundin-backend wget -q --spider http://127.0.0.1:5000/api/health 2>/dev/null; then
+                            echo "✅ Backend is healthy"
+                            break
+                        fi
+                        echo "  attempt $i/15 — sleeping 5s..."
                         sleep 5
                     done
                 '''
 
                 sh '''
-                    docker exec devops-prometheus wget -q --spider http://127.0.0.1:9090/-/healthy
-                    docker exec devops-grafana wget -q --spider http://127.0.0.1:3000/api/health
+                    docker exec devops-prometheus wget -q --spider http://127.0.0.1:9090/-/healthy && echo "✅ Prometheus OK"
+                    docker exec devops-grafana wget -q --spider http://127.0.0.1:3000/api/health && echo "✅ Grafana OK"
                 '''
 
                 echo '✅ Deployment successful!'
@@ -171,12 +177,12 @@ EOF
 
         failure {
             echo '❌ Pipeline failed!'
-            sh 'docker compose logs || true'
+            sh 'docker compose logs --tail=50 || true'
         }
 
         always {
-            echo '🧹 Cleanup...'
-            sh 'docker system prune -f || true'
+            echo '🧹 Cleanup dangling images...'
+            sh 'docker image prune -f || true'
         }
     }
 }

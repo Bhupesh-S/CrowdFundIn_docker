@@ -54,8 +54,16 @@
 }
 
 .campaign-card:hover .campaign-image {
-  transform: scale(1.03);
-  filter: brightness(1.05);
+  transform: scale(1.04);
+  transition: transform var(--transition-slow);
+}
+
+.campaign-title-hover {
+  transition: color var(--transition-base);
+}
+
+.campaign-title-hover:hover {
+  color: var(--primary);
 }
 
 .campaign-image-placeholder {

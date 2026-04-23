@@ -1,0 +1,97 @@
+# ═══════════════════════════════════════════════════════════════
+# Prometheus Alerting Rules — CrowdFundIn
+# ═══════════════════════════════════════════════════════════════
+groups:
+  - name: crowdfundin_alerts
+    rules:
+
+      # ── 1. p99 latency above 1 second ───────────────────────
+      - alert: HighP99Latency
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route)
+          ) > 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High p99 latency on route {{ $labels.route }}"
+          description: |
+            Metric: http_request_duration_seconds (p99)
+            Current value: {{ $value | humanizeDuration }}
+            Threshold: 1s
+            Route: {{ $labels.route }}
+            First action: Check recent deployments or DB query performance for this route.
+          cooldown: 5m
+
+      # ── 2. 5xx error rate above 1% ───────────────────────────
+      - alert: High5xxErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) * 100 > 1
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "5xx error rate exceeded 1%"
+          description: |
+            Metric: http_requests_total (5xx ratio)
+            Current value: {{ $value | humanize }}%
+            Threshold: 1%
+            First action: Check backend logs (`docker logs crowdfundin-backend`) for stack traces.
+          cooldown: 5m
+
+      # ── 3. Login failures > 50/min for 2 consecutive minutes ─
+      - alert: BruteForceLoginDetected
+        expr: |
+          rate(crowdfundin_login_failures_total[1m]) * 60 > 50
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Possible brute-force attack — login failures > 50/min"
+          description: |
+            Metric: crowdfundin_login_failures_total
+            Current value: {{ $value | humanize }} failures/min
+            Threshold: 50/min sustained for 2 minutes
+            First action: Check for repeated IPs in access logs and consider rate-limiting /api/auth/login.
+          cooldown: 5m
+
+      # ── 4. Payment failure rate > 2% for 5 minutes ──────────
+      - alert: HighPaymentFailureRate
+        expr: |
+          (
+            sum(rate(crowdfundin_payment_failures_total[5m]))
+            /
+            (sum(rate(crowdfundin_donations_total[5m])) + sum(rate(crowdfundin_payment_failures_total[5m])))
+          ) * 100 > 2
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment failure rate exceeded 2%"
+          description: |
+            Metric: crowdfundin_payment_failures_total vs crowdfundin_donations_total
+            Current value: {{ $value | humanize }}%
+            Threshold: 2% sustained for 5 minutes
+            First action: Verify Razorpay API credentials and check for service status incidents.
+          cooldown: 5m
+
+      # ── 5. Campaign fully funded (positive alert) ────────────
+      - alert: CampaignFullyFunded
+        expr: |
+          increase(crowdfundin_funds_raised_total[5m]) > 0
+          and
+          crowdfundin_active_campaigns < crowdfundin_active_campaigns offset 5m
+        for: 0m
+        labels:
+          severity: info
+        annotations:
+          summary: "A campaign has reached its funding goal! 🎉"
+          description: |
+            Metric: crowdfundin_active_campaigns (decrease detected)
+            First action: Send a congratulations notification to the campaign owner.
+          cooldown: 5m

@@ -105,7 +105,7 @@
 }
 
 .stat-card {
-  background: #ffffff;
+  background: var(--primary);
   border-radius: var(--radius-2xl);
   padding: var(--spacing-8) var(--spacing-6);
   text-align: center;
@@ -113,18 +113,10 @@
   transition: all var(--transition-slow);
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--gray-200);
+  border: 1px solid transparent;
 }
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-primary);
-}
+
 
 .stat-card:hover {
   transform: translateY(-4px);
@@ -147,26 +139,26 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: var(--gradient-primary);
+  background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--white);
   font-size: var(--font-size-3xl);
   margin: 0 auto var(--spacing-4);
-  box-shadow: var(--shadow-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-value {
   font-size: var(--font-size-4xl);
   font-weight: 800;
-  color: #2c3e50;
+  color: white;
   display: block;
   margin-bottom: 0.5rem;
 }
 
 .stat-label {
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -216,12 +208,12 @@
 
 .dashboard-tab.active {
   background: white;
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
 
 .dashboard-tab:hover {
-  color: #667eea;
+  color: var(--primary);
   background: rgba(102, 126, 234, 0.05);
 }
 
@@ -269,7 +261,7 @@
 
 .quick-action-btn {
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   text-decoration: none;
   border-radius: 12px;
@@ -294,9 +286,6 @@
 }
 
 /* Campaign Owner Dashboard */
-.campaign-owner-content {
-  
-}
 
 .campaigns-section {
   margin-bottom: 3rem;
@@ -317,7 +306,7 @@
 }
 
 .view-all-link {
-  color: #667eea;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
@@ -334,13 +323,8 @@
 }
 
 /* Donor Dashboard */
-.donor-content {
-  
-}
 
-.donation-history {
-  
-}
+
 
 .donation-item {
   display: flex;
@@ -355,7 +339,7 @@
 
 .donation-item:hover {
   background: #f8f9fa;
-  border-color: #667eea;
+  border-color: var(--primary);
   transform: translateY(-2px);
 }
 
@@ -432,7 +416,7 @@
 .empty-action {
   display: inline-block;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   text-decoration: none;
   border-radius: 12px;
@@ -457,7 +441,7 @@
   width: 50px;
   height: 50px;
   border: 5px solid #f3f3f3;
-  border-top: 5px solid #667eea;
+  border-top: 5px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -506,7 +490,7 @@
 
   .dashboard-tab.active {
     border-bottom: 1px solid #dee2e6;
-    border-left: 3px solid #667eea;
+    border-left: 3px solid var(--primary);
   }
 
   .tab-panel {

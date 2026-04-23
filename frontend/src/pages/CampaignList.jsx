@@ -61,7 +61,8 @@ const CampaignList = () => {
         page,
         limit: 12,
         sort: sortBy,
-        order: 'desc'
+        order: 'desc',
+        status: 'all'
       };
 
       if (searchQuery) params.search = searchQuery;
@@ -119,15 +120,15 @@ const CampaignList = () => {
 
   return (
     <div className="container" style={{ padding: '40px 20px' }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Campaigns</h1>
-        <div className="text-muted">
+      <div className="d-flex justify-content-between align-items-center mb-4 fade-up-stagger-0" style={{ animation: 'fadeUp 500ms cubic-bezier(0.4, 0, 0.2, 1) both' }}>
+        <h1 style={{ color: 'var(--text-primary)' }}>Campaigns</h1>
+        <div style={{ color: 'var(--text-muted)' }}>
           {!loading && campaigns.length > 0 && `${campaigns.length} campaigns found`}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="card mb-4">
+      <div className="card mb-4 mx-auto fade-up-stagger-1" style={{ maxWidth: '760px', animation: 'fadeUp 500ms cubic-bezier(0.4, 0, 0.2, 1) 80ms both' }}>
         <div className="card-body">
           <form onSubmit={handleSearch} className="mb-3">
             <div className="d-flex gap-2">
@@ -234,15 +235,15 @@ const CampaignList = () => {
       {!loading && (
         <>
           {campaigns.length > 0 ? (
-            <div className="grid grid-3">
+            <div className="grid grid-3 fade-up-stagger-2" style={{ animation: 'fadeUp 500ms cubic-bezier(0.4, 0, 0.2, 1) 160ms both' }}>
               {campaigns.map(campaign => (
                 <CampaignCard key={campaign._id} campaign={campaign} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-5">
-              <h3 className="text-muted">No campaigns found</h3>
-              <p className="text-muted">
+            <div className="text-center py-5 fade-up-stagger-2" style={{ animation: 'fadeUp 500ms cubic-bezier(0.4, 0, 0.2, 1) 160ms both' }}>
+              <h3 style={{ color: 'var(--text-primary)' }}>No campaigns found</h3>
+              <p style={{ color: 'var(--text-secondary)' }}>
                 {searchQuery || selectedCategory || minAmount || maxAmount
                   ? 'Try adjusting your filters or search terms'
                   : 'Be the first to create a campaign!'

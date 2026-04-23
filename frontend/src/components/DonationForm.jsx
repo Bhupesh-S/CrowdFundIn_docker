@@ -219,12 +219,11 @@ const DonationForm = ({ campaign, onSuccess }) => {
           <button
             type="submit"
             disabled={loading || !amount}
-            className="btn minimal-btn btn-large"
-            style={{ width: '100%', background: '#2c3e50', color: '#fff', borderRadius: '8px', border: 'none', boxShadow: 'none', fontWeight: 600, fontSize: '1.1rem' }}
+            className="btn btn-donate-submit"
           >
             {loading ? (
               <>
-                <div className="spinner" style={{ width: '20px', height: '20px', margin: '0 8px 0 0' }}></div>
+                <div className="spinner"></div>
                 Processing...
               </>
             ) : (

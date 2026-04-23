@@ -57,7 +57,7 @@ const DonationList = ({ campaignId, refreshTrigger }) => {
 
   const getAvatarColor = (name) => {
     if (!name || name === 'Anonymous') return '#6c757d';
-    const colors = ['#667eea', '#764ba2', '#28a745', '#dc3545', '#ffc107', '#17a2b8'];
+    const colors = ['var(--primary)', 'var(--accent)', '#28a745', '#dc3545', '#ffc107', '#17a2b8'];
     const hash = name.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
     return colors[hash % colors.length];
   };
@@ -105,48 +105,52 @@ const DonationList = ({ campaignId, refreshTrigger }) => {
           </div>
         ) : (
           <>
-            <div className="donation-list">
+            <div>
               {donations.map((donation, index) => (
-                <div key={donation.id || donation._id || `donation-${index}`} className="donation-item d-flex align-items-start gap-3 mb-3 pb-3" 
-                     style={{ borderBottom: '1px solid #e1e5e9' }}>
-                  <div 
-                    className="avatar"
-                    style={{ 
-                      backgroundColor: getAvatarColor(donation.donorName),
-                      flexShrink: 0
-                    }}
-                  >
-                    {getInitials(donation.donorName)}
-                  </div>
+                <div key={donation.id || donation._id || `donation-${index}`} className="d-flex align-items-center justify-content-between p-4 mb-3 bg-white shadow-sm" 
+                     style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', transition: 'all 0.2s ease' }}>
                   
-                  <div className="flex-grow-1 min-width-0">
-                    <div className="d-flex justify-content-between align-items-start mb-1">
-                      <div>
-                        <strong className="donation-donor-name">
+                  {/* Left Side: Avatar and Name */}
+                  <div className="d-flex align-items-center gap-3">
+                    <div 
+                      className="avatar"
+                      style={{ 
+                        backgroundColor: getAvatarColor(donation.donorName),
+                        flexShrink: 0,
+                        width: '48px',
+                        height: '48px',
+                        fontSize: '1.2rem'
+                      }}
+                    >
+                      {getInitials(donation.donorName)}
+                    </div>
+                    <div>
+                      <div className="mb-1">
+                        <strong className="donation-donor-name" style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                           {donation.isAnonymous ? 'Anonymous' : donation.donorName}
                         </strong>
-                        {donation.isAnonymous && donation.donorName && (
-                          <small className="text-muted ml-2">(Anonymous)</small>
+                        {donation.isAnonymous && (
+                          <span className="badge ml-2" style={{ backgroundColor: 'var(--warning-100)', color: 'var(--warning-700)', padding: '2px 6px', fontSize: '0.7rem', borderRadius: '4px', verticalAlign: 'middle' }}>ANONYMOUS</span>
                         )}
                       </div>
-                      <div className="text-right">
-                        <div className="donation-amount text-success font-weight-bold">
-                          ${donation.amount.toLocaleString()}
-                        </div>
-                        <small className="text-muted">
-                          {formatDate(donation.createdAt)}
-                        </small>
-                      </div>
-                    </div>
-                    
-                    {donation.comment && (
-                      <div className="donation-comment mt-1">
-                        <p className="text-muted mb-0" style={{ fontSize: '14px' }}>
+                      {donation.comment && (
+                        <p className="text-muted mb-0" style={{ fontSize: '14px', fontStyle: 'italic' }}>
                           "{donation.comment}"
                         </p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
+
+                  {/* Right Side: Amount and Date */}
+                  <div className="text-right" style={{ minWidth: '120px' }}>
+                    <div className="text-success font-weight-bold" style={{ fontSize: '1.25rem' }}>
+                      ${donation.amount.toLocaleString()}
+                    </div>
+                    <small className="text-muted d-block mt-1">
+                      {formatDate(donation.createdAt)}
+                    </small>
+                  </div>
+
                 </div>
               ))}
             </div>
@@ -156,8 +160,8 @@ const DonationList = ({ campaignId, refreshTrigger }) => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1 || loading}
-                  className="btn minimal-btn btn-small"
-                  style={{background: '#f5f6fa', color: '#2c3e50', border: '1px solid #e1e5e9', borderRadius: '8px', boxShadow: 'none'}}
+                  className="btn btn-outline btn-small"
+                  style={{ boxShadow: 'none' }}
                 >
                   Previous
                 </button>
@@ -180,13 +184,9 @@ const DonationList = ({ campaignId, refreshTrigger }) => {
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
                         disabled={loading}
-                        className={`btn minimal-btn btn-small`}
+                        className={`btn btn-small ${pageNum === currentPage ? 'btn-primary' : 'btn-outline'}`}
                         style={{ 
                           minWidth: '40px', 
-                          background: pageNum === currentPage ? '#2c3e50' : '#f5f6fa',
-                          color: pageNum === currentPage ? '#fff' : '#2c3e50',
-                          border: '1px solid #e1e5e9',
-                          borderRadius: '8px',
                           boxShadow: 'none',
                           fontWeight: pageNum === currentPage ? 700 : 500
                         }}
@@ -200,8 +200,8 @@ const DonationList = ({ campaignId, refreshTrigger }) => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages || loading}
-                  className="btn minimal-btn btn-small"
-                  style={{background: '#f5f6fa', color: '#2c3e50', border: '1px solid #e1e5e9', borderRadius: '8px', boxShadow: 'none'}}
+                  className="btn btn-outline btn-small"
+                  style={{ boxShadow: 'none' }}
                 >
                   Next
                 </button>

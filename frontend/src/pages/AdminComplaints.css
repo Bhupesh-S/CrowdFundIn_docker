@@ -2,7 +2,7 @@
 
 /* Header Improvements */
 .complaints-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%) !important;
   color: white !important;
   border-radius: 20px;
   padding: 2rem;
@@ -204,12 +204,12 @@
 
 .modern-select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .modern-select:hover {
-  border-color: #667eea;
+  border-color: var(--primary);
 }
 
 /* Modern Complaints List */
@@ -239,7 +239,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--status-color, #667eea), transparent);
+  background: linear-gradient(90deg, var(--status-color, var(--primary)), transparent);
 }
 
 .complaint-header {
@@ -375,7 +375,7 @@
   background: #f8f9fa;
   padding: 1rem;
   border-radius: 12px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--primary);
   margin: 0;
 }
 
@@ -430,7 +430,7 @@
 }
 
 .modern-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
@@ -531,7 +531,7 @@
 .empty-dots span {
   width: 8px;
   height: 8px;
-  background: #667eea;
+  background: var(--primary);
   border-radius: 50%;
   animation: bounce 1.4s ease-in-out infinite both;
 }
@@ -556,7 +556,7 @@
 }
 
 .reset-filters-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -609,7 +609,7 @@
 }
 
 .pagination-btn:hover:not(:disabled) {
-  border-color: #667eea;
+  border-color: var(--primary);
   background: #f8f9ff;
 }
 
@@ -643,12 +643,12 @@
 }
 
 .page-number:hover {
-  border-color: #667eea;
+  border-color: var(--primary);
   background: #f8f9ff;
 }
 
 .page-number.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   border-color: transparent;
 }
@@ -697,7 +697,7 @@
 }
 
 .modern-modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   padding: 2rem;
   display: flex;
@@ -835,7 +835,7 @@
 
 .form-control:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 

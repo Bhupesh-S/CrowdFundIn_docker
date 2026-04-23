@@ -56,7 +56,7 @@ const AdminLogin = () => {
     setLoading(true);
     
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const apiUrl = process.env.REACT_APP_API_URL || '/api';
       const response = await axios.post(`${apiUrl}/auth/admin/login`, formData);
       const { user, token } = response.data;
 

@@ -8,6 +8,9 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY . .
 
+# Fix permission for uploads directory
+RUN mkdir -p uploads && chown -R node:node /app
+
 # Security: use non-root user
 USER node
 

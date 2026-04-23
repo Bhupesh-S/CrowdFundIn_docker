@@ -66,24 +66,24 @@ const About = () => {
         </section>
 
         {/* Statistics Section */}
-        <section className="stats-section">
-          <h2 className="section-title text-center">Our Impact</h2>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-number">10,000+</div>
-              <div className="stat-label">Projects Funded</div>
+        <section className="about-stats-section">
+          <h2 className="section-title text-center" style={{ color: 'white' }}>Our Impact</h2>
+          <div className="about-stats-grid">
+            <div className="about-stat-card">
+              <div className="about-stat-number">10,000+</div>
+              <div className="about-stat-label">Projects Funded</div>
             </div>
-            <div className="stat-card">
-              <div className="stat-number">$50M+</div>
-              <div className="stat-label">Total Raised</div>
+            <div className="about-stat-card">
+              <div className="about-stat-number">$50M+</div>
+              <div className="about-stat-label">Total Raised</div>
             </div>
-            <div className="stat-card">
-              <div className="stat-number">100,000+</div>
-              <div className="stat-label">Happy Backers</div>
+            <div className="about-stat-card">
+              <div className="about-stat-number">100,000+</div>
+              <div className="about-stat-label">Happy Backers</div>
             </div>
-            <div className="stat-card">
-              <div className="stat-number">95%</div>
-              <div className="stat-label">Success Rate</div>
+            <div className="about-stat-card">
+              <div className="about-stat-number">95%</div>
+              <div className="about-stat-label">Success Rate</div>
             </div>
           </div>
         </section>

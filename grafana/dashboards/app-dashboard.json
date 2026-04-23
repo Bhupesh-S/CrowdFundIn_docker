@@ -1,5 +1,7 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -9,8 +11,16 @@
     {
       "title": "HTTP Requests per Second",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
       "targets": [
         {
           "expr": "rate(http_requests_total[1m])",
@@ -20,16 +30,29 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 20 }
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20
+          }
         }
       }
     },
     {
       "title": "Request Duration (p95)",
       "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "" },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
       "targets": [
         {
           "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
@@ -40,16 +63,29 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 20 }
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20
+          }
         }
       }
     },
     {
       "title": "Total Requests",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
       "targets": [
         {
           "expr": "sum(http_requests_total)",
@@ -58,12 +94,23 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1000 },
-              { "color": "red", "value": 5000 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 5000
+              }
             ]
           }
         }
@@ -72,11 +119,19 @@
     {
       "title": "App Uptime",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
       "targets": [
         {
-          "expr": "devops_app_process_start_time_seconds",
+          "expr": "crowdfundin_backend_process_start_time_seconds",
           "refId": "A"
         }
       ],
@@ -89,11 +144,19 @@
     {
       "title": "Memory Usage (MB)",
       "type": "gauge",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
       "targets": [
         {
-          "expr": "devops_app_process_resident_memory_bytes / 1024 / 1024",
+          "expr": "crowdfundin_backend_process_resident_memory_bytes / 1024 / 1024",
           "legendFormat": "RSS",
           "refId": "A"
         }
@@ -105,9 +168,18 @@
           "max": 512,
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 200 },
-              { "color": "red", "value": 400 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 400
+              }
             ]
           }
         }
@@ -116,11 +188,19 @@
     {
       "title": "CPU Usage",
       "type": "gauge",
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "" },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
       "targets": [
         {
-          "expr": "rate(devops_app_process_cpu_seconds_total[1m])",
+          "expr": "rate(crowdfundin_backend_process_cpu_user_seconds_total[1m]) + rate(crowdfundin_backend_process_cpu_system_seconds_total[1m])",
           "legendFormat": "CPU",
           "refId": "A"
         }
@@ -132,9 +212,18 @@
           "max": 1,
           "thresholds": {
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.5 },
-              { "color": "red", "value": 0.8 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 0.8
+              }
             ]
           }
         }
@@ -142,9 +231,17 @@
     }
   ],
   "schemaVersion": 38,
-  "tags": ["devops", "nodejs"],
-  "templating": { "list": [] },
-  "time": { "from": "now-15m", "to": "now" },
+  "tags": [
+    "devops",
+    "nodejs"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
   "title": "DevOps App Dashboard",
   "uid": "devops-app-dashboard"
 }

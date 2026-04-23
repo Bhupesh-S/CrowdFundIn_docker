@@ -110,98 +110,86 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container mt-4">
-      {/* Header */}
-      <div className="dashboard-header-section mb-4">
-        <div className="text-center">
-          <h1 className="dashboard-welcome-title">Welcome back, {user.name}!</h1>
-          <p className="dashboard-welcome-subtitle">Here's what's happening with your account</p>
+    <div className="dashboard-page animate-fade-in-up">
+      <div className="dashboard-container">
+        {/* Welcome Header */}
+        <div className="welcome-section">
+          <h1 className="welcome-title">Welcome back, {user.name}!</h1>
+          <p className="welcome-message mb-3">Here's what's happening with your account</p>
           <button 
             onClick={fetchDashboardData} 
-            className="btn btn-outline-primary btn-sm mt-2"
+            className="btn btn-primary"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.3)' }}
             disabled={loading}
           >
             {loading ? 'Refreshing...' : '🔄 Refresh Data'}
           </button>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-3 mb-4">
+      {/* Stats Overview */}
+      <div className="stats-overview">
         {isCampaignOwner && (
-          <div className="card">
-            <div className="card-body text-center">
-              <h3 className="text-primary">{campaigns.length}</h3>
-              <p className="text-muted mb-0">Campaign{campaigns.length !== 1 ? 's' : ''}</p>
-            </div>
+          <div className="stat-card animate-fade-in-up delay-100">
+            <div className="stat-icon"><i className="fas fa-chart-bar"></i></div>
+            <span className="stat-value">{campaigns.length}</span>
+            <div className="stat-label">Active Campaign{campaigns.length !== 1 ? 's' : ''}</div>
           </div>
         )}
         
-        <div className="card">
-          <div className="card-body text-center">
-            <h3 className="text-success">{donations.length}</h3>
-            <p className="text-muted mb-0">Donation{donations.length !== 1 ? 's' : ''} Made</p>
-          </div>
+        <div className="stat-card animate-fade-in-up delay-200">
+          <div className="stat-icon"><i className="fas fa-heart"></i></div>
+          <span className="stat-value">{donations.length}</span>
+          <div className="stat-label">Donation{donations.length !== 1 ? 's' : ''} Made</div>
         </div>
 
-        <div className="card">
-          <div className="card-body text-center">
-            <h3 className="text-primary">
-              ${donations.reduce((total, donation) => total + donation.amount, 0).toLocaleString()}
-            </h3>
-            <p className="text-muted mb-0">Total Donated</p>
-          </div>
+        <div className="stat-card animate-fade-in-up delay-300">
+          <div className="stat-icon"><i className="fas fa-gem"></i></div>
+          <span className="stat-value">
+            ${donations.reduce((total, donation) => total + donation.amount, 0).toLocaleString()}
+          </span>
+          <div className="stat-label">Total Impact</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="card">
-        <div className="card-header">
-          <div className="d-flex gap-2">
-            {isCampaignOwner && (
-              <button
-                onClick={() => setActiveTab('campaigns')}
-                className={`btn btn-small ${
-                  activeTab === 'campaigns' ? 'btn-primary' : 'btn-outline'
-                }`}
-              >
-                My Campaigns
-              </button>
-            )}
+      {/* Dashboard Content Area */}
+      <div className="dashboard-content">
+        <div className="dashboard-tabs">
+          {isCampaignOwner && (
             <button
-              onClick={() => setActiveTab('donations')}
-              className={`btn btn-small ${
-                activeTab === 'donations' ? 'btn-primary' : 'btn-outline'
-              }`}
+              onClick={() => setActiveTab('campaigns')}
+              className={`dashboard-tab ${activeTab === 'campaigns' ? 'active' : ''}`}
             >
-              My Donations
+              My Campaigns
             </button>
-            {isCampaignOwner && (
-              <button
-                onClick={() => setActiveTab('donations-received')}
-                className={`btn btn-small ${
-                  activeTab === 'donations-received' ? 'btn-primary' : 'btn-outline'
-                }`}
-              >
-                <i className="fas fa-hand-holding-heart me-2"></i>
-                Donations Received
-              </button>
-            )}
-            {isCampaignOwner && (
-              <button
-                onClick={() => setActiveTab('profile')}
-                className={`btn btn-small ${
-                  activeTab === 'profile' ? 'btn-primary' : 'btn-outline'
-                }`}
-              >
-                <i className="fas fa-user me-2"></i>
-                Profile
-              </button>
-            )}
-          </div>
+          )}
+          <button
+            onClick={() => setActiveTab('donations')}
+            className={`dashboard-tab ${activeTab === 'donations' ? 'active' : ''}`}
+          >
+            My Donations
+          </button>
+          {isCampaignOwner && (
+            <button
+              onClick={() => setActiveTab('donations-received')}
+              className={`dashboard-tab ${activeTab === 'donations-received' ? 'active' : ''}`}
+            >
+              <i className="fas fa-hand-holding-heart me-2"></i>
+              Donations Received
+            </button>
+          )}
+          {isCampaignOwner && (
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`dashboard-tab ${activeTab === 'profile' ? 'active' : ''}`}
+            >
+              <i className="fas fa-user me-2"></i>
+              Profile
+            </button>
+          )}
         </div>
 
-        <div className="card-body">
+        <div className="tab-panel">
           {/* Campaigns Tab */}
           {activeTab === 'campaigns' && isCampaignOwner && (
             <div>
@@ -232,7 +220,7 @@ const Dashboard = () => {
                       <div className="campaign-image-section">
                         {campaign.image && (
                           <img 
-                            src={`http://localhost:5000${campaign.image}`} 
+                            src={`${campaign.image}`} 
                             alt={campaign.title}
                             className="campaign-image"
                             onError={(e) => {
@@ -352,41 +340,42 @@ const Dashboard = () => {
                   </button>
                 </div>
               ) : (
-                <div>
+                <div className="donations-list-container">
                   {donations.map((donation) => (
-                    <div key={donation.id} className="d-flex align-items-center justify-content-between p-3 mb-2" 
-                         style={{ border: '1px solid #e1e5e9', borderRadius: '8px' }}>
-                      <div className="d-flex align-items-center gap-3">
-                        <div className="text-center">
-                          <div className="text-success font-weight-bold">
+                    <div key={donation.id} className="d-flex align-items-center justify-content-between p-4 mb-3 bg-white shadow-sm" 
+                         style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', transition: 'all 0.2s ease' }}>
+                      <div className="d-flex align-items-center gap-4">
+                        <div className="text-center" style={{ minWidth: '100px', paddingRight: '1rem', borderRight: '1px solid var(--gray-200)' }}>
+                          <div className="text-success font-weight-bold" style={{ fontSize: '1.25rem' }}>
                             ${donation.amount.toLocaleString()}
                           </div>
-                          <small className="text-muted">
+                          <small className="text-muted d-block mt-1">
                             {formatDate(donation.createdAt)}
                           </small>
                         </div>
-                        <div>
+                        <div style={{ paddingLeft: '0.5rem' }}>
                           <h5 className="mb-1">
                             <a 
                               href={`/campaigns/${donation.campaignId}`}
-                              className="text-decoration-none"
+                              className="text-decoration-none text-primary"
+                              style={{ fontWeight: '600', fontSize: '1.1rem' }}
                             >
                               {donation.campaign?.title || 'Campaign'}
                             </a>
                           </h5>
                           {donation.comment && (
-                            <p className="text-muted mb-0" style={{ fontSize: '14px' }}>
+                            <p className="text-muted mb-1 mt-1" style={{ fontSize: '14px', fontStyle: 'italic' }}>
                               "{donation.comment}"
                             </p>
                           )}
                           {donation.isAnonymous && (
-                            <small className="badge badge-warning">Anonymous</small>
+                            <span className="badge mt-2" style={{ backgroundColor: 'var(--warning-100)', color: 'var(--warning-700)', padding: '4px 8px', borderRadius: '4px' }}>Anonymous</span>
                           )}
                         </div>
                       </div>
                       <button 
                         onClick={() => window.location.href = `/campaigns/${donation.campaignId}`}
-                        className="btn btn-outline btn-small"
+                        className="btn btn-outline-primary btn-sm"
                       >
                         View Campaign
                       </button>
@@ -407,6 +396,7 @@ const Dashboard = () => {
             <CampaignOwnerProfile />
           )}
         </div>
+      </div>
       </div>
     </div>
   );

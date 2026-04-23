@@ -28,7 +28,7 @@ const CampaignCard = ({ campaign }) => {
           className="campaign-image"
           style={{
             height: '200px',
-            backgroundImage: image ? `url(http://localhost:5000${image})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundImage: image ? `url(${image})` : 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             position: 'relative'
@@ -57,7 +57,7 @@ const CampaignCard = ({ campaign }) => {
 
       <div className="card-body">
         <Link to={`/campaigns/${_id}`} className="text-decoration-none">
-          <h3 className="card-title">{title}</h3>
+          <h3 className="card-title campaign-title-hover">{title}</h3>
         </Link>
         
         <p className="card-text text-muted">
@@ -76,7 +76,7 @@ const CampaignCard = ({ campaign }) => {
 
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <div className="text-primary font-weight-bold">
+            <div className="font-weight-bold" style={{ color: 'var(--gold)' }}>
               {formatCurrency(currentAmount)}
             </div>
             <small className="text-muted">raised of {formatCurrency(goalAmount)}</small>

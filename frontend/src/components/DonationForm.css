@@ -44,7 +44,7 @@
 }
 
 .amount-button:hover {
-  border-color: #667eea;
+  border-color: var(--primary);
   background-color: rgba(102, 126, 234, 0.05);
 }
 
@@ -80,8 +80,8 @@
 }
 
 .amount-button.selected {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
 }
 
@@ -102,7 +102,7 @@
 
 .custom-amount-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -130,7 +130,7 @@
 
 .message-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -155,7 +155,7 @@
 .anonymous-checkbox input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #667eea;
+  accent-color: var(--primary);
 }
 
 .anonymous-label {
@@ -217,14 +217,14 @@
 }
 
 .summary-total .summary-value {
-  color: #667eea;
+  color: var(--primary);
   font-size: 1.2rem;
 }
 
 .donate-button {
   width: 100%;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -289,7 +289,7 @@
 .security-badge {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #667eea;
+  color: var(--primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }

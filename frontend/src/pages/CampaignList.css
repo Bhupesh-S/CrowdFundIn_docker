@@ -67,7 +67,7 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -83,7 +83,7 @@
 
 .filter-select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -116,7 +116,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #667eea;
+  background: var(--primary);
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -151,7 +151,7 @@
 
 .results-count-number {
   font-weight: 700;
-  color: #667eea;
+  color: var(--primary);
 }
 
 .sort-controls {
@@ -214,7 +214,7 @@
 .create-campaign-btn {
   display: inline-block;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   text-decoration: none;
   border-radius: 12px;
@@ -250,7 +250,7 @@
   border: 1px solid #dee2e6;
   border-radius: 50%;
   background: white;
-  color: #667eea;
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -260,9 +260,9 @@
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: #667eea;
+  background: var(--primary);
   color: white;
-  border-color: #667eea;
+  border-color: var(--primary);
   transform: translateY(-2px);
 }
 
@@ -272,9 +272,9 @@
 }
 
 .pagination-btn.active {
-  background: #667eea;
+  background: var(--primary);
   color: white;
-  border-color: #667eea;
+  border-color: var(--primary);
 }
 
 .pagination-info {

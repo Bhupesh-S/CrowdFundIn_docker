@@ -102,7 +102,7 @@ const MyDonations = () => {
                     <div className="donation-campaign-info">
                       {donation.campaign.image ? (
                         <img 
-                          src={`http://localhost:5000${donation.campaign.image}`}
+                          src={`${donation.campaign.image}`}
                           alt={donation.campaign.title}
                           className="campaign-thumbnail"
                         />

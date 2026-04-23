@@ -4,7 +4,7 @@
 }
 
 .about-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   text-align: center;
   padding: 6rem 2rem 4rem;
@@ -62,17 +62,7 @@
   position: relative;
 }
 
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  border-radius: 2px;
-}
+
 
 .mission-text {
   font-size: 1.2rem;
@@ -128,13 +118,13 @@
 }
 
 /* Statistics Section */
-.stats-section {
+.about-stats-section {
   padding: 5rem 2rem;
   background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
 }
 
-.stats-grid {
+.about-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 2rem;
@@ -143,20 +133,21 @@
   text-align: center;
 }
 
-.stat-card {
+.about-stat-card {
   padding: 2rem 1rem;
 }
 
-.stat-number {
+.about-stat-number {
   font-size: 3rem;
   font-weight: 800;
-  color: #667eea;
+  color: var(--primary);
   display: block;
   margin-bottom: 0.5rem;
 }
 
-.stat-label {
-  font-size: 1rem;
+.about-stat-label {
+  font-size: 1.1rem;
+  color: white;
   font-weight: 600;
   opacity: 0.9;
   text-transform: uppercase;
@@ -195,7 +186,7 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -215,7 +206,7 @@
 
 .member-role {
   font-size: 0.9rem;
-  color: #667eea;
+  color: var(--primary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -231,7 +222,7 @@
 /* CTA Section */
 .cta-section {
   padding: 5rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   text-align: center;
 }
 
@@ -274,7 +265,7 @@
 
 .btn-primary {
   background: white;
-  color: #667eea;
+  color: var(--primary);
 }
 
 .btn-outline {
@@ -305,6 +296,18 @@
 
   .about-subtitle {
     font-size: 1.2rem;
+  }
+
+  .about-stats-section {
+    padding: 3rem 1.5rem;
+  }
+  
+  .about-stat-number {
+    font-size: 2.5rem;
+  }
+  
+  .about-stat-label {
+    font-size: 1rem;
   }
 
   .mission-section {

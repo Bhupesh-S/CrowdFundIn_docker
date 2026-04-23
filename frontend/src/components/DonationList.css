@@ -32,7 +32,7 @@
 .stat-number {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #667eea;
+  color: var(--primary);
   display: block;
 }
 
@@ -68,7 +68,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,7 +128,7 @@
   background: #f8f9fa;
   padding: 0.75rem;
   border-radius: 8px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid var(--primary);
 }
 
 .donation-message.empty {
@@ -173,16 +173,16 @@
   border: 1px solid #dee2e6;
   border-radius: 8px;
   background: white;
-  color: #667eea;
+  color: var(--primary);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .pagination-button:hover:not(:disabled) {
-  background: #667eea;
+  background: var(--primary);
   color: white;
-  border-color: #667eea;
+  border-color: var(--primary);
 }
 
 .pagination-button:disabled {
@@ -206,7 +206,7 @@
   width: 32px;
   height: 32px;
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #667eea;
+  border-top: 3px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;

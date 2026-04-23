@@ -1,0 +1,295 @@
+{
+  "title": "2 \u2014 Campaign Analytics",
+  "uid": "crowdfundin-campaign-analytics",
+  "tags": [
+    "crowdfundin",
+    "campaigns"
+  ],
+  "refresh": "1m",
+  "schemaVersion": 38,
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "category",
+        "type": "custom",
+        "label": "Campaign Category",
+        "options": [
+          {
+            "text": "All",
+            "value": ".*"
+          },
+          {
+            "text": "Education",
+            "value": "Education"
+          },
+          {
+            "text": "Healthcare",
+            "value": "Healthcare"
+          },
+          {
+            "text": "Environment",
+            "value": "Environment"
+          },
+          {
+            "text": "Technology",
+            "value": "Technology"
+          },
+          {
+            "text": "Arts",
+            "value": "Arts"
+          },
+          {
+            "text": "Community",
+            "value": "Community"
+          },
+          {
+            "text": "Emergency",
+            "value": "Emergency"
+          },
+          {
+            "text": "Other",
+            "value": "Other"
+          }
+        ],
+        "current": {
+          "text": "All",
+          "value": ".*"
+        },
+        "includeAll": true,
+        "multi": false
+      },
+      {
+        "name": "time_range",
+        "type": "custom",
+        "label": "Time Range",
+        "options": [
+          {
+            "text": "Last 7 days",
+            "value": "7d"
+          },
+          {
+            "text": "Last 30 days",
+            "value": "30d"
+          },
+          {
+            "text": "All time",
+            "value": "1y"
+          }
+        ],
+        "current": {
+          "text": "Last 30 days",
+          "value": "30d"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Funds Raised \u2014 Top 10 Campaigns by Amount",
+      "type": "bargauge",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by(campaign_id) (increase(crowdfundin_funds_raised_total[$__range])))",
+          "legendFormat": "Campaign {{campaign_id}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "currencyINR"
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Cumulative Donations Over Time by Campaign",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum by(campaign_id) (crowdfundin_funds_raised_total)",
+          "legendFormat": "{{campaign_id}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyINR",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Platform Success Rate (Funded / Closed)",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "crowdfundin_active_campaigns >= 0",
+          "legendFormat": "Active Campaigns",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 75
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Campaign Distribution by Category",
+      "type": "piechart",
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 6,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "crowdfundin_active_campaigns",
+          "legendFormat": "Active",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "pieType": "donut",
+        "legendDisplayMode": "table"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Total Donations Rate (All Time)",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "targets": [
+        {
+          "expr": "sum(crowdfundin_donations_total)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "area"
+      }
+    }
+  ]
+}

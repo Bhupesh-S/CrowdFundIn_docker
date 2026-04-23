@@ -150,7 +150,7 @@ const CommentSection = ({ campaignId }) => {
           <div className="author-avatar">
             {comment.author?.profilePicture ? (
               <img 
-                src={`http://localhost:5000${comment.author.profilePicture}`}
+                src={`${comment.author.profilePicture}`}
                 alt={comment.author.name}
               />
             ) : (
@@ -320,7 +320,7 @@ const CommentSection = ({ campaignId }) => {
             <div className="user-avatar">
               {user?.profilePicture ? (
                 <img 
-                  src={`http://localhost:5000${user.profilePicture}`}
+                  src={`${user.profilePicture}`}
                   alt={user.name}
                 />
               ) : (

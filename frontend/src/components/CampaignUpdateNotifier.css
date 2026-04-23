@@ -102,7 +102,7 @@
   color: var(--gray-700);
 }
 
-.form-control {
+textarea.form-control, .update-form .form-control {
   width: 100%;
   padding: var(--spacing-3);
   border: 1px solid var(--gray-300);
@@ -114,13 +114,13 @@
   transition: all 0.3s ease;
 }
 
-.form-control:focus {
+textarea.form-control:focus, .update-form .form-control:focus {
   outline: none;
   border-color: var(--primary-500);
   box-shadow: 0 0 0 3px var(--primary-100);
 }
 
-.form-control:disabled {
+textarea.form-control:disabled, .update-form .form-control:disabled {
   background-color: var(--gray-50);
   color: var(--gray-500);
   cursor: not-allowed;
@@ -292,7 +292,7 @@
     padding: var(--spacing-3);
   }
 
-  .form-control {
+  textarea.form-control, .update-form .form-control {
     min-height: 100px;
   }
 }
@@ -313,7 +313,7 @@
 @media (prefers-reduced-motion: reduce) {
   .update-prompt,
   .btn,
-  .form-control,
+  textarea.form-control, .update-form .form-control,
   .spinner {
     transition: none;
     animation: none;

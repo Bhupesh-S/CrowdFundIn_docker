@@ -52,7 +52,7 @@
   font-size: 2rem;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -165,7 +165,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
   transition: width 0.6s ease;
 }
 
@@ -239,7 +239,7 @@
 
 .public-badge {
   background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  color: var(--primary);
   padding: 0.25rem 0.5rem;
   border-radius: 10px;
   font-size: 0.7rem;
@@ -255,7 +255,7 @@
   padding: 0.5rem;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid var(--primary);
 }
 
 .donation-actions {
@@ -266,7 +266,7 @@
 
 .view-campaign-btn {
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -312,7 +312,7 @@
 
 .browse-campaigns-btn {
   padding: 1rem 2.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -351,7 +351,7 @@
   border: 1px solid #dee2e6;
   border-radius: 8px;
   background: white;
-  color: #667eea;
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -361,9 +361,9 @@
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: #667eea;
+  background: var(--primary);
   color: white;
-  border-color: #667eea;
+  border-color: var(--primary);
 }
 
 .pagination-btn:disabled {
@@ -372,9 +372,9 @@
 }
 
 .pagination-btn.active {
-  background: #667eea;
+  background: var(--primary);
   color: white;
-  border-color: #667eea;
+  border-color: var(--primary);
 }
 
 .pagination-info {
@@ -396,7 +396,7 @@
   width: 50px;
   height: 50px;
   border: 5px solid #f3f3f3;
-  border-top: 5px solid #667eea;
+  border-top: 5px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;

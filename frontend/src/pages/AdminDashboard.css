@@ -64,7 +64,7 @@
   font-size: 2.5rem;
   width: 70px;
   height: 70px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -187,7 +187,7 @@
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
 }
 
@@ -291,7 +291,7 @@
 
 .bar-fill {
   width: 100%;
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
   border-radius: 4px 4px 0 0;
   min-height: 10px;
   transition: height 0.6s ease;
@@ -371,7 +371,7 @@
 }
 
 .avatar-placeholder {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -741,7 +741,7 @@
 
 .form-control:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -766,9 +766,9 @@
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: #667eea;
+  background: var(--primary);
   color: white;
-  border-color: #667eea;
+  border-color: var(--primary);
 }
 
 .pagination-btn:disabled {
@@ -1173,7 +1173,7 @@
   width: 50px;
   height: 50px;
   border: 5px solid #f3f3f3;
-  border-top: 5px solid #667eea;
+  border-top: 5px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;

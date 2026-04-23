@@ -251,7 +251,7 @@ const DonationsReceived = () => {
                       <div className="donor-info">
                         {donation.donor?.profilePicture ? (
                           <img 
-                            src={`http://localhost:5000${donation.donor.profilePicture}`}
+                            src={`${donation.donor.profilePicture}`}
                             alt={donation.donor.name}
                             className="donor-avatar"
                             style={{ objectFit: 'cover' }}

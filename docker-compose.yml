@@ -14,14 +14,13 @@ services:
     container_name: crowdfundin-backend
     ports:
       - "5000:5000"
-    environment:
-      - MONGODB_URI=mongodb://mongo:27017/crowdfundin
-      - JWT_SECRET=mysecretkey123
+    env_file:
+      - ./backend/.env
+    volumes:
+      - backend-uploads:/app/uploads
     restart: unless-stopped
     networks:
       - devops-network
-    depends_on:
-      - mongo
 
   # ── Frontend Application ─────────────────────────────────────
   frontend:
@@ -30,24 +29,12 @@ services:
       dockerfile: Dockerfile
     container_name: crowdfundin-frontend
     ports:
-      - "3000:80"
+      - "3000:8080"
     restart: unless-stopped
     networks:
       - devops-network
     depends_on:
       - backend
-
-  # ── MongoDB ──────────────────────────────────────────────────
-  mongo:
-    image: mongo:6
-    container_name: crowdfundin-mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    restart: unless-stopped
-    networks:
-      - devops-network
 
   # ── Prometheus (Monitoring) ─────────────────────────────────
   prometheus:
@@ -57,6 +44,8 @@ services:
       - "9090:9090"
     volumes:
       - prometheus-data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'
@@ -78,6 +67,8 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
     networks:
       - devops-network
@@ -85,7 +76,7 @@ services:
       - prometheus
 
 volumes:
-  mongo-data:
+  backend-uploads:
   prometheus-data:
   grafana-data:
 

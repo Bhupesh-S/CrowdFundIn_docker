@@ -99,7 +99,7 @@ resource "docker_container" "frontend" {
   image = docker_image.frontend.image_id
 
   ports {
-    internal = 80
+    internal = 8080
     external = var.frontend_port
   }
 

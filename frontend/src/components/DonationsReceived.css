@@ -20,14 +20,14 @@
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--gray-200);
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--spacing-6);
 }
 
 .donations-header-content {
-  flex: 1;
+  margin-right: auto;
 }
 
 .donations-title {

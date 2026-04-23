@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #667eea;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
@@ -49,13 +49,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #667eea;
+  color: var(--primary);
   font-weight: 700;
   font-size: 1.1rem;
 }
 
 .admin-navbar-brand svg {
-  color: #667eea;
+  color: var(--primary);
 }
 
 /* Role Selection */
@@ -100,9 +100,9 @@
 }
 
 .role-input:checked + .role-label {
-  border-color: #667eea;
+  border-color: var(--primary);
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  color: #667eea;
+  color: var(--primary);
 }
 
 .role-title {
@@ -198,7 +198,7 @@
 .terms-checkbox input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #667eea;
+  accent-color: var(--primary);
   margin-top: 2px;
   flex-shrink: 0;
 }
@@ -210,7 +210,7 @@
 }
 
 .terms-link {
-  color: #667eea;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 500;
 }
@@ -253,7 +253,7 @@
 
 .continue-btn {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -278,7 +278,7 @@
 }
 
 .welcome-text {
-  color: #667eea;
+  color: var(--primary);
   font-weight: 600;
   margin: 0;
   font-size: 0.9rem;
@@ -328,7 +328,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

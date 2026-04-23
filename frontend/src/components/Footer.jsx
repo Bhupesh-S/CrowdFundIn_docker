@@ -1,73 +1,55 @@
 import React from 'react';
 import './Footer.css';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer style={{
-      backgroundColor: '#333',
-      color: 'white',
-      padding: '40px 0',
-      marginTop: 'auto'
-    }}>
+    <footer className="footer">
       <div className="container">
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '32px',
-          marginBottom: '32px'
-        }}>
+        <div className="footer-content">
           <div>
-            <h3 style={{ 
-              fontSize: '24px', 
-              fontWeight: 'bold', 
-              color: '#667eea', 
-              marginBottom: '16px' 
-            }}>
+            <h3 className="footer-logo">
               CrowdFundIn
             </h3>
-            <p style={{ color: '#ccc', lineHeight: '1.6' }}>
+            <p className="footer-tagline">
               Empowering dreams through community support. Join us in making a difference, 
               one campaign at a time.
             </p>
           </div>
           
           <div>
-            <h4 style={{ marginBottom: '16px', color: 'white' }}>Quick Links</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <a href="/" style={{ color: '#ccc', textDecoration: 'none' }}>Home</a>
-              <a href="/campaigns" style={{ color: '#ccc', textDecoration: 'none' }}>Browse Campaigns</a>
-              <a href="/how-it-works" style={{ color: '#ccc', textDecoration: 'none' }}>How It Works</a>
-              <a href="/about" style={{ color: '#ccc', textDecoration: 'none' }}>About Us</a>
+            <h4 className="footer-col-heading">Quick Links</h4>
+            <div className="footer-links-col">
+              <Link to="/" className="footer-link">Home</Link>
+              <Link to="/campaigns" className="footer-link">Browse Campaigns</Link>
+              <Link to="/how-it-works" className="footer-link">How It Works</Link>
+              <Link to="/about" className="footer-link">About Us</Link>
             </div>
           </div>
           
           <div>
-            <h4 style={{ marginBottom: '16px', color: 'white' }}>Support</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <a href="/help" style={{ color: '#ccc', textDecoration: 'none' }}>Help Center</a>
-              <a href="/contact" style={{ color: '#ccc', textDecoration: 'none' }}>Contact Us</a>
-              <a href="/privacy" style={{ color: '#ccc', textDecoration: 'none' }}>Privacy Policy</a>
-              <a href="/terms" style={{ color: '#ccc', textDecoration: 'none' }}>Terms of Service</a>
+            <h4 className="footer-col-heading">Support</h4>
+            <div className="footer-links-col">
+              <Link to="/help" className="footer-link">Help Center</Link>
+              <Link to="/contact" className="footer-link">Contact Us</Link>
+              <Link to="/privacy" className="footer-link">Privacy Policy</Link>
+              <Link to="/terms" className="footer-link">Terms of Service</Link>
             </div>
           </div>
           
           <div>
-            <h4 style={{ marginBottom: '16px', color: 'white' }}>Follow Us</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <a href="https://facebook.com" style={{ color: '#ccc', textDecoration: 'none' }}>Facebook</a>
-              <a href="https://twitter.com" style={{ color: '#ccc', textDecoration: 'none' }}>Twitter</a>
-              <a href="https://instagram.com" style={{ color: '#ccc', textDecoration: 'none' }}>Instagram</a>
-              <a href="https://linkedin.com" style={{ color: '#ccc', textDecoration: 'none' }}>LinkedIn</a></div>
+            <h4 className="footer-col-heading">Follow Us</h4>
+            <div className="footer-links-col">
+              <a href="https://facebook.com" className="footer-link" target="_blank" rel="noopener noreferrer">Facebook</a>
+              <a href="https://twitter.com" className="footer-link" target="_blank" rel="noopener noreferrer">Twitter</a>
+              <a href="https://instagram.com" className="footer-link" target="_blank" rel="noopener noreferrer">Instagram</a>
+              <a href="https://linkedin.com" className="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            </div>
           </div>
         </div>
         
-        <div style={{
-          borderTop: '1px solid #555',
-          paddingTop: '24px',
-          textAlign: 'center',
-          color: '#ccc'
-        }}>
-          <p style={{ color: "WHITE" }} >&copy; {new Date().getFullYear()} CrowdFundIn. All rights reserved.</p>
+        <div className="footer-bottom">
+          <p>&copy; {new Date().getFullYear()} CrowdFundIn. All rights reserved.</p>
         </div>
       </div>
     </footer>

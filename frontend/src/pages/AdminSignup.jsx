@@ -138,7 +138,7 @@ const AdminSignup = () => {
       <div className="container" style={{ maxWidth: '500px', margin: '120px auto 80px', padding: '20px' }}>
         <div className="card">
           <div className="card-header text-center">
-            <h1 className="card-title" style={{ color: '#dc3545' }}>Admin Registration</h1>
+            <h1 className="card-title" style={{ color: 'var(--danger)' }}>Admin Registration</h1>
           <p className="text-muted">Create CrowdFundIn Admin Account</p>
         </div>
         
@@ -285,7 +285,7 @@ const AdminSignup = () => {
           <Link 
             to="/login"
             style={{ 
-              color: '#667eea', 
+              color: 'var(--primary)', 
               textDecoration: 'none',
               fontSize: '14px'
             }}

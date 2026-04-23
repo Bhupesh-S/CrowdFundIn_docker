@@ -34,7 +34,7 @@ const EditProfileForm = ({ initialData, onSave, onCancel }) => {
       
       // Set initial image preview if user has a profile picture
       if (initialData.profilePicture) {
-        setImagePreview(`http://localhost:5000${initialData.profilePicture}`);
+        setImagePreview(`${initialData.profilePicture}`);
       }
     }
   }, [initialData]);
@@ -112,7 +112,7 @@ const EditProfileForm = ({ initialData, onSave, onCancel }) => {
   // Remove selected image
   const removeImage = () => {
     setProfileImage(null);
-    setImagePreview(initialData?.profilePicture ? `http://localhost:5000${initialData.profilePicture}` : null);
+    setImagePreview(initialData?.profilePicture ? `${initialData.profilePicture}` : null);
     // Reset file input
     const fileInput = document.getElementById('profileImage');
     if (fileInput) {

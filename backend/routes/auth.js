@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { generateToken, protect } = require('../middleware/auth');
+const { userRegistrationsTotal, loginFailuresTotal } = require('../metrics');
 
 const router = express.Router();
 
@@ -42,6 +43,9 @@ router.post('/register', [
     // Generate token
     const token = generateToken(user._id);
 
+    // ── Metric: user registration ─────────────────────────────────────────
+    userRegistrationsTotal.inc();
+
     res.status(201).json({
       message: 'User registered successfully',
       user: {
@@ -80,6 +84,8 @@ router.post('/login', [
     const user = await User.findOne({ email }).select('+password');
     
     if (!user || !(await user.comparePassword(password))) {
+      // ── Metric: login failure ─────────────────────────────────────────────
+      loginFailuresTotal.inc();
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 

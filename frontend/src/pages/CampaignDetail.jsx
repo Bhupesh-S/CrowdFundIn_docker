@@ -99,7 +99,7 @@ const CampaignDetail = () => {
   const isExpired = daysRemaining === 0;
 
   return (
-    <div className="container" style={{ padding: '40px 20px' }}>
+    <div className="campaign-detail-page container" style={{ padding: '40px 20px' }}>
       {/* Breadcrumb */}
       <nav className="mb-4">
         <Link to="/campaigns" className="text-muted">
@@ -107,7 +107,7 @@ const CampaignDetail = () => {
         </Link>
       </nav>
 
-      <div className="grid grid-2 gap-4">
+      <div className="campaign-detail-grid">
         {/* Left Column - Image and Description */}
         <div>
           <div 
@@ -115,8 +115,8 @@ const CampaignDetail = () => {
             style={{
               height: '400px',
               backgroundImage: campaign.image 
-                ? `url(http://localhost:5000${campaign.image})` 
-                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                ? `url(${campaign.image})` 
+                : 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               borderRadius: '12px',
@@ -158,7 +158,7 @@ const CampaignDetail = () => {
           </div>
 
           {/* Creator Info */}
-          <div className="card mt-4">
+          <div className="card mt-4 animate-fade-in-up delay-300">
             <div className="card-header">
               <h3>About the creator</h3>
             </div>
@@ -218,13 +218,8 @@ const CampaignDetail = () => {
           )}
 
           {/* Recent Donations */}
-          <div className="card mt-4">
-            <div className="card-header">
-              <h3>Recent Donations</h3>
-            </div>
-            <div className="card-body">
-              <DonationList campaignId={campaign._id} />
-            </div>
+          <div className="animate-fade-in-up delay-400 mt-4">
+            <DonationList campaignId={campaign._id} />
           </div>
 
           {/* Comments Section */}
@@ -233,7 +228,7 @@ const CampaignDetail = () => {
 
         {/* Right Column - Campaign Stats and Donation */}
         <div>
-          <div className="card" style={{ position: 'sticky', top: '20px' }}>
+          <div className="card animate-fade-in-up delay-400" style={{ position: 'sticky', top: '20px' }}>
             <div className="card-body">
               <h1 className="card-title">{campaign.title}</h1>
               
@@ -310,7 +305,7 @@ const CampaignDetail = () => {
                 </div>
               )}
 
-              <div className="mt-4 pt-4" style={{ borderTop: '1px solid #e1e5e9' }}>
+              <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
                 <h4>Campaign Details</h4>
                 <div className="mt-3">
                   <div className="d-flex justify-content-between mb-2">

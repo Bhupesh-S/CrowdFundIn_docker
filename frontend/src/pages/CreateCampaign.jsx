@@ -53,7 +53,7 @@ const CreateCampaign = () => {
 
       // If there's an existing image, set preview
       if (campaign.image) {
-        setImagePreview(`http://localhost:5000${campaign.image}`);
+        setImagePreview(`${campaign.image}`);
       }
     } catch (error) {
       console.error('Error loading campaign data:', error);
@@ -283,10 +283,12 @@ const CreateCampaign = () => {
   const maxDateString = maxDate.toISOString().split('T')[0];
 
   return (
-    <div className="container" style={{ padding: '40px 20px', maxWidth: '800px' }}>
-      <h1 className="mb-4">{isEditMode ? 'Edit Campaign' : 'Create New Campaign'}</h1>
+    <div className="container fade-up-mount" style={{ padding: '40px 20px', maxWidth: '800px' }}>
+      <h1 className="mb-4 text-center fade-up-stagger-0" style={{ animation: 'fadeUp 500ms cubic-bezier(0.4, 0, 0.2, 1) both' }}>
+        {isEditMode ? 'Edit Campaign' : 'Create New Campaign'}
+      </h1>
       
-      <div className="card">
+      <div className="card mx-auto fade-up-stagger-1" style={{ maxWidth: '760px', animation: 'fadeUp 500ms cubic-bezier(0.4, 0, 0.2, 1) 80ms both' }}>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
             {/* Campaign Title */}
@@ -400,7 +402,7 @@ const CreateCampaign = () => {
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(e) => {
                     e.preventDefault();
-                    e.currentTarget.style.borderColor = '#667eea';
+                    e.currentTarget.style.borderColor = 'var(--primary)';
                   }}
                   onDragLeave={(e) => {
                     e.currentTarget.style.borderColor = '#e1e5e9';
@@ -424,7 +426,7 @@ const CreateCampaign = () => {
                   </small>
                 </div>
               ) : (
-                <div className="image-preview" style={{ position: 'relative' }}>
+                <div className="image-preview" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <img
                     src={imagePreview}
                     alt="Campaign preview"
@@ -432,20 +434,16 @@ const CreateCampaign = () => {
                       width: '100%',
                       height: '300px',
                       objectFit: 'cover',
-                      borderRadius: '8px'
+                      borderRadius: 'var(--radius-md)'
                     }}
                   />
                   <button
                     type="button"
                     className="btn btn-danger btn-small"
                     onClick={removeImage}
-                    style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px'
-                    }}
+                    style={{ alignSelf: 'flex-start' }}
                   >
-                    Remove
+                    Remove Image
                   </button>
                 </div>
               )}
@@ -465,12 +463,12 @@ const CreateCampaign = () => {
             </div>
 
             {/* Submit Buttons */}
-            <div className="d-flex gap-3 mt-4">
+            <div className="d-flex flex-column gap-3 mt-4">
               <button
                 type="submit"
                 className="btn btn-primary btn-large"
                 disabled={loading}
-                style={{ flex: 1 }}
+                style={{ width: '100%' }}
               >
                 {loading ? (
                   <>
@@ -489,9 +487,10 @@ const CreateCampaign = () => {
               
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-outline btn-large"
                 onClick={() => navigate('/campaigns')}
                 disabled={loading}
+                style={{ width: '100%' }}
               >
                 Cancel
               </button>
@@ -501,26 +500,26 @@ const CreateCampaign = () => {
       </div>
 
       {/* Tips Section */}
-      <div className="card mt-4">
+      <div className="card mt-4 mx-auto fade-up-stagger-2" style={{ maxWidth: '760px', animation: 'fadeUp 500ms cubic-bezier(0.4, 0, 0.2, 1) 160ms both' }}>
         <div className="card-header">
           <h3>Tips for a successful campaign</h3>
         </div>
         <div className="card-body">
-          <ul style={{ paddingLeft: '20px' }}>
+          <ul style={{ paddingLeft: '20px', color: 'var(--text-secondary)' }}>
             <li className="mb-2">
-              <strong>Clear and compelling title:</strong> Make it obvious what you're raising money for
+              <strong style={{ color: 'var(--text-primary)' }}>Clear and compelling title:</strong> Make it obvious what you're raising money for
             </li>
             <li className="mb-2">
-              <strong>Detailed description:</strong> Explain your project, timeline, and how funds will be used
+              <strong style={{ color: 'var(--text-primary)' }}>Detailed description:</strong> Explain your project, timeline, and how funds will be used
             </li>
             <li className="mb-2">
-              <strong>Realistic goal:</strong> Set a funding goal that covers your actual needs
+              <strong style={{ color: 'var(--text-primary)' }}>Realistic goal:</strong> Set a funding goal that covers your actual needs
             </li>
             <li className="mb-2">
-              <strong>Great visuals:</strong> Use high-quality images that showcase your project
+              <strong style={{ color: 'var(--text-primary)' }}>Great visuals:</strong> Use high-quality images that showcase your project
             </li>
             <li className="mb-2">
-              <strong>Promote actively:</strong> Share your campaign on social media and with your network
+              <strong style={{ color: 'var(--text-primary)' }}>Promote actively:</strong> Share your campaign on social media and with your network
             </li>
           </ul>
         </div>

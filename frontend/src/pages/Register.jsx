@@ -199,7 +199,7 @@ const Register = () => {
               {errors.password && (
                 <div className="form-error">{errors.password}</div>
               )}
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                 Password must contain at least 6 characters with uppercase, lowercase, and number
               </div>
             </div>
@@ -269,7 +269,7 @@ const Register = () => {
             <Link 
               to="/login" 
               style={{ 
-                color: '#667eea', 
+                color: 'var(--primary)', 
                 textDecoration: 'none',
                 fontWeight: '600'
               }}
@@ -278,11 +278,10 @@ const Register = () => {
             </Link>
           </p>
           
-          <div style={{ fontSize: '12px', color: '#999', marginTop: '12px' }}>
-            By creating an account, you agree to our{' '}
-            <a href="/terms" style={{ color: '#667eea' }}>Terms of Service</a>
-            {' '}and{' '}
-            <a href="/privacy" style={{ color: '#667eea' }}>Privacy Policy</a>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px' }}>
+            By registering, you agree to our <br />
+            <a href="/terms" style={{ color: 'var(--primary)' }}>Terms of Service</a> and{' '}
+            <a href="/privacy" style={{ color: 'var(--primary)' }}>Privacy Policy</a>
           </div>
         </div>
       </div>

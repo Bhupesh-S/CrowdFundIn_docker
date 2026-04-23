@@ -6,6 +6,11 @@
 pipeline {
     agent any
 
+    triggers {
+        // Poll SCM every 5 minutes (adjust schedule as needed)
+        pollSCM('H/5 * * * *')
+    }
+
     environment {
         BACKEND_IMAGE    = 'crowdfundin-backend'
         FRONTEND_IMAGE   = 'crowdfundin-frontend'
@@ -100,10 +105,6 @@ pipeline {
                 sh 'docker compose down || true'
                 sh 'docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana crowdfundin-mongo || true'
                 sh 'docker compose up -d --build'
-                sh 'docker cp prometheus/prometheus.yml devops-prometheus:/etc/prometheus/prometheus.yml'
-                sh 'docker cp grafana/provisioning devops-grafana:/etc/grafana/ || true'
-                sh 'docker cp grafana/dashboards devops-grafana:/var/lib/grafana/ || true'
-                sh 'docker restart devops-prometheus devops-grafana'
             }
         }
 

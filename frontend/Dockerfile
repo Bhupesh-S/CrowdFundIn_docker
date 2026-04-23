@@ -7,8 +7,10 @@ RUN npm run build
 
 FROM nginx:alpine
 
-# Security: Remove default configuration and set up non-root user permissions
+# Security: Remove default configuration and set up custom non-root configuration
 RUN rm -rf /etc/nginx/conf.d/*
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 COPY --from=build /app/build /usr/share/nginx/html
 
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
@@ -20,5 +22,5 @@ RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/run/nginx.pid
 
 USER nginx
-EXPOSE 80
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]

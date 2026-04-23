@@ -126,7 +126,7 @@ const SocialShare = ({ campaign }) => {
                 <div className="campaign-preview-image">
                   {campaign.image ? (
                     <img 
-                      src={`http://localhost:5000${campaign.image}`}
+                      src={`${campaign.image}`}
                       alt={campaign.title}
                     />
                   ) : (

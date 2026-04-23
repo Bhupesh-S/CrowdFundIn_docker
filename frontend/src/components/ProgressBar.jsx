@@ -5,9 +5,9 @@ const ProgressBar = ({ current, goal, className = '' }) => {
   const percentage = Math.min((current / goal) * 100, 100);
   
   return (
-    <div className={`progress ${className}`}>
+    <div className={`progress-container ${className}`}>
       <div 
-        className="progress-bar" 
+        className="progress-bar-animated" 
         style={{ width: `${percentage}%` }}
         role="progressbar"
         aria-valuenow={percentage}

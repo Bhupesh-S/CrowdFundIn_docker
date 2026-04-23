@@ -18,7 +18,7 @@ const CampaignOwnerProfile = () => {
       setError(null);
       
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/campaigns/profile?' + Date.now(), {
+      const response = await fetch('/api/campaigns/profile?' + Date.now(), {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -68,9 +68,9 @@ const CampaignOwnerProfile = () => {
         console.log('Using JSON for request');
       }
       
-      console.log('Sending request to:', 'http://localhost:5000/api/campaigns/profile/update');
+      console.log('Sending request to:', '/api/campaigns/profile/update');
       
-      const response = await fetch('http://localhost:5000/api/campaigns/profile/update', {
+      const response = await fetch('/api/campaigns/profile/update', {
         method: 'PUT',
         headers,
         body
@@ -195,7 +195,7 @@ const CampaignOwnerProfile = () => {
             <div className="profile-picture-container">
               {(() => {
                 console.log('Rendering profile picture, path:', profile?.profilePicture);
-                const imageSrc = profile?.profilePicture ? `http://localhost:5000${profile.profilePicture}` : null;
+                const imageSrc = profile?.profilePicture ? `${profile.profilePicture}` : null;
                 console.log('Full image URL:', imageSrc);
                 return profile?.profilePicture ? (
                   <img

@@ -1,20 +1,32 @@
 # ═══════════════════════════════════════════════════════════════
-# Prometheus Configuration
+# Prometheus Configuration — CrowdFundIn
 # ═══════════════════════════════════════════════════════════════
 
 global:
-  scrape_interval: 15s          # Scrape targets every 15 seconds
-  evaluation_interval: 15s      # Evaluate rules every 15 seconds
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    project: 'crowdfundin'
+    environment: 'production'
+
+# Load alerting rules
+rule_files:
+  - '/etc/prometheus/alerts.yml'
 
 scrape_configs:
-  # ── Monitor the Node.js App ──────────────────────────────────
+  # ── CrowdFundIn Express Backend ──────────────────────────────
   - job_name: 'crowdfundin-backend'
     static_configs:
       - targets: ['backend:5000']
+        labels:
+          service: 'api'
     metrics_path: /metrics
-    scrape_interval: 5s
+    scrape_interval: 15s
+    scrape_timeout: 10s
 
-  # ── Monitor Prometheus itself ────────────────────────────────
+  # ── Prometheus itself ────────────────────────────────────────
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+        labels:
+          service: 'monitoring'

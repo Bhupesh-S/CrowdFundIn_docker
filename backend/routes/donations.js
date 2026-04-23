@@ -5,6 +5,12 @@ const Donation = require('../models/Donation');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 const emailService = require('../services/emailService');
+const {
+  donationsTotal,
+  fundsRaisedTotal,
+  paymentFailuresTotal,
+  activeCampaignsGauge
+} = require('../metrics');
 
 // Initialize Razorpay
 const Razorpay = require('razorpay');
@@ -133,12 +139,15 @@ router.post('/create-order', protect, [
     
     // Handle other Razorpay errors
     if (error.error && error.error.description) {
+      // ── Metric: payment failure ─────────────────────────────────────────────
+      paymentFailuresTotal.inc();
       return res.status(500).json({ 
         message: 'Payment gateway error: ' + error.error.description,
         debug: error.error.code || 'RAZORPAY_ERROR'
       });
     }
     
+    paymentFailuresTotal.inc();
     res.status(500).json({ 
       message: 'Server error creating payment order', 
       error: error.message 
@@ -239,7 +248,13 @@ router.post('/verify-payment', protect, [
     if (updatedCampaign.currentAmount >= updatedCampaign.goalAmount) {
       updatedCampaign.status = 'completed';
       await updatedCampaign.save();
+      // ── Metric: campaign completed → decrement active gauge ───────────────
+      activeCampaignsGauge.dec();
     }
+
+    // ── Metric: successful donation ─────────────────────────────────────
+    donationsTotal.inc();
+    fundsRaisedTotal.inc({ campaign_id: campaignId }, parseFloat(amount));
 
     const populatedDonation = await Donation.findById(donation._id)
       .populate('donor', 'name profilePicture email')
@@ -293,6 +308,8 @@ router.post('/verify-payment', protect, [
     });
   } catch (error) {
     console.error('Verify payment error:', error);
+    // ── Metric: payment failure ─────────────────────────────────────────────
+    paymentFailuresTotal.inc();
     res.status(500).json({ message: 'Server error verifying payment' });
   }
 });

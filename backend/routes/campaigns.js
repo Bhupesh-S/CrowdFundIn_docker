@@ -4,6 +4,11 @@ const Campaign = require('../models/Campaign');
 const User = require('../models/User');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const {
+  activeCampaignsGauge,
+  imageUploadSuccessTotal,
+  imageUploadFailureTotal
+} = require('../metrics');
 
 const router = express.Router();
 
@@ -144,6 +149,7 @@ router.post('/', protect,
       // Add image if uploaded
       if (req.file) {
         campaignData.image = `/uploads/${req.file.filename}`;
+        imageUploadSuccessTotal.inc();  // ── Metric: upload success
       }
 
       const campaign = await Campaign.create(campaignData);
@@ -153,6 +159,9 @@ router.post('/', protect,
         $push: { createdCampaigns: campaign._id }
       });
 
+      // ── Metric: active campaign count ────────────────────────────────
+      activeCampaignsGauge.inc();
+
       const populatedCampaign = await Campaign.findById(campaign._id)
         .populate('owner', 'name profilePicture');
 
@@ -161,6 +170,10 @@ router.post('/', protect,
         campaign: populatedCampaign
       });
     } catch (error) {
+      // ── Metric: upload failure (multer or general error) ─────────────────
+      if (req.file === undefined && req.body.image !== undefined) {
+        imageUploadFailureTotal.inc();
+      }
       console.error('Create campaign error:', error);
       res.status(500).json({ message: 'Server error creating campaign' });
     }

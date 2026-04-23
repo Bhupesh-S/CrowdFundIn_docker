@@ -128,18 +128,17 @@ EOF
         // Uses pre-built :latest images (no --build flag) so Docker
         // Compose picks up the images built in the Docker Build stage.
         // No local mongo container — MongoDB Atlas is used via MONGODB_URI.
-        // Secrets are injected from Jenkins credential store (not from .env,
-        // which is gitignored and absent from the CI workspace).
+        // One Jenkins 'Secret file' credential (backend-env-file) holds the
+        // full backend/.env — written to the workspace so docker compose
+        // can read it via env_file. .env is gitignored, this keeps it out of SCM.
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying stack...'
-                withCredentials([
-                    string(credentialsId: 'MONGODB_URI',      variable: 'MONGODB_URI'),
-                    string(credentialsId: 'JWT_SECRET',       variable: 'JWT_SECRET'),
-                    string(credentialsId: 'RAZORPAY_KEY_ID',  variable: 'RAZORPAY_KEY_ID'),
-                    string(credentialsId: 'RAZORPAY_KEY_SECRET', variable: 'RAZORPAY_KEY_SECRET')
-                ]) {
+                withCredentials([file(credentialsId: 'backend-env-file', variable: 'BACKEND_ENV_FILE')]) {
                     sh '''
+                        # Write the secret .env into the workspace so compose can read it
+                        cp "$BACKEND_ENV_FILE" backend/.env
+
                         docker compose down --remove-orphans --volumes || true
 
                         # Remove any stale named containers (no mongo — Atlas is used)

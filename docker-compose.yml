@@ -8,14 +8,16 @@ services:
     ports:
       - "5000:5000"
 
-    # Load all vars from backend/.env (includes MONGODB_URI, JWT_SECRET, etc.)
-    env_file:
-      - ./backend/.env
-
-    # Allow overriding individual vars via shell environment or CI secrets
+    # Secrets are injected by Jenkins withCredentials → docker compose inherits
+    # them from the shell environment. For local dev, export these vars or
+    # create backend/.env and run: export $(cat backend/.env | xargs)
     environment:
-      PORT: 5000
-      NODE_ENV: production
+      MONGODB_URI:           ${MONGODB_URI}
+      JWT_SECRET:            ${JWT_SECRET}
+      RAZORPAY_KEY_ID:       ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET:   ${RAZORPAY_KEY_SECRET:-}
+      PORT:                  5000
+      NODE_ENV:              production
 
     volumes:
       - backend-uploads:/app/uploads

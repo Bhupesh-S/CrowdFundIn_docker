@@ -118,7 +118,7 @@ scrape_configs:
 EOF
 
                     ls -l prometheus
-                    file prometheus/prometheus.yml
+                    cat prometheus/prometheus.yml
                     echo "✅ prometheus.yml created"
                 '''
             }
@@ -128,17 +128,26 @@ EOF
         // Uses pre-built :latest images (no --build flag) so Docker
         // Compose picks up the images built in the Docker Build stage.
         // No local mongo container — MongoDB Atlas is used via MONGODB_URI.
+        // Secrets are injected from Jenkins credential store (not from .env,
+        // which is gitignored and absent from the CI workspace).
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying stack...'
-                sh '''
-                    docker compose down --remove-orphans --volumes || true
+                withCredentials([
+                    string(credentialsId: 'MONGODB_URI',      variable: 'MONGODB_URI'),
+                    string(credentialsId: 'JWT_SECRET',       variable: 'JWT_SECRET'),
+                    string(credentialsId: 'RAZORPAY_KEY_ID',  variable: 'RAZORPAY_KEY_ID'),
+                    string(credentialsId: 'RAZORPAY_KEY_SECRET', variable: 'RAZORPAY_KEY_SECRET')
+                ]) {
+                    sh '''
+                        docker compose down --remove-orphans --volumes || true
 
-                    # Remove any stale named containers (no mongo — Atlas is used)
-                    docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true
+                        # Remove any stale named containers (no mongo — Atlas is used)
+                        docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true
 
-                    docker compose up -d
-                '''
+                        docker compose up -d
+                    '''
+                }
             }
         }
 

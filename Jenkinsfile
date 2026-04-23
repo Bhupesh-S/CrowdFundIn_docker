@@ -1,35 +1,28 @@
-// ═══════════════════════════════════════════════════════════════
-// Jenkinsfile — CI/CD Pipeline
-// Stages: Build → Test → Docker Build → Security Scan → Deploy
-// ═══════════════════════════════════════════════════════════════
-
 pipeline {
     agent any
 
     triggers {
-        // Poll SCM every 5 minutes (adjust schedule as needed)
         pollSCM('H/5 * * * *')
     }
 
     environment {
-        BACKEND_IMAGE    = 'crowdfundin-backend'
-        FRONTEND_IMAGE   = 'crowdfundin-frontend'
-        DOCKER_TAG       = "${env.BUILD_NUMBER}"
+        BACKEND_IMAGE  = 'crowdfundin-backend'
+        FRONTEND_IMAGE = 'crowdfundin-frontend'
+        DOCKER_TAG     = "${env.BUILD_NUMBER}"
     }
 
     stages {
-        // ── Stage 1: Checkout Code ────────────────────────────
+
         stage('Checkout') {
             steps {
-                echo '📥 Pulling source code from Git...'
+                echo '📥 Pulling source code...'
                 checkout scm
             }
         }
 
-        // ── Stage 2: Install Dependencies ─────────────────────
         stage('Install Dependencies') {
             steps {
-                echo '📦 Installing Node.js dependencies...'
+                echo '📦 Installing dependencies...'
                 dir('backend') {
                     sh 'npm install'
                 }
@@ -39,17 +32,15 @@ pipeline {
             }
         }
 
-        // ── Stage 3: Run Tests ────────────────────────────────
         stage('Test') {
             steps {
                 echo '🧪 Running tests...'
                 dir('backend') {
                     sh '''
-                        node server.js > /dev/null 2>&1 &
-                        NODE_PID=$!
-                        sleep 2
+                        timeout 20s node server.js &
+                        sleep 3
                         npm test || true
-                        kill $NODE_PID || true
+                        pkill -f "node server.js" || true
                     '''
                 }
                 dir('frontend') {
@@ -58,65 +49,85 @@ pipeline {
             }
         }
 
-        // ── Stage 4: Build Docker Images ──────────────────────
         stage('Docker Build') {
             parallel {
-                stage('Build Backend') {
+                stage('Backend') {
                     steps {
-                        echo '🐳 Building Backend Docker image...'
-                        sh "docker build -f backend/Dockerfile -t ${BACKEND_IMAGE}:${DOCKER_TAG} backend/"
-                        sh "docker tag ${BACKEND_IMAGE}:${DOCKER_TAG} ${BACKEND_IMAGE}:latest"
+                        sh """
+                        docker build -f backend/Dockerfile -t ${BACKEND_IMAGE}:${DOCKER_TAG} backend/
+                        docker tag ${BACKEND_IMAGE}:${DOCKER_TAG} ${BACKEND_IMAGE}:latest
+                        """
                     }
                 }
-                stage('Build Frontend') {
+                stage('Frontend') {
                     steps {
-                        echo '🐳 Building Frontend Docker image...'
-                        sh "docker build -f frontend/Dockerfile -t ${FRONTEND_IMAGE}:${DOCKER_TAG} frontend/"
-                        sh "docker tag ${FRONTEND_IMAGE}:${DOCKER_TAG} ${FRONTEND_IMAGE}:latest"
+                        sh """
+                        docker build -f frontend/Dockerfile -t ${FRONTEND_IMAGE}:${DOCKER_TAG} frontend/
+                        docker tag ${FRONTEND_IMAGE}:${DOCKER_TAG} ${FRONTEND_IMAGE}:latest
+                        """
                     }
                 }
             }
         }
 
-        // ── Stage 5: Image Size Comparison ────────────────────
         stage('Image Size Report') {
             steps {
-                echo '📊 Image sizes...'
-                sh "docker images ${BACKEND_IMAGE} --format 'table {{.Repository}}:{{.Tag}}\\t{{.Size}}'"
-                sh "docker images ${FRONTEND_IMAGE} --format 'table {{.Repository}}:{{.Tag}}\\t{{.Size}}'"
+                sh "docker images ${BACKEND_IMAGE}"
+                sh "docker images ${FRONTEND_IMAGE}"
             }
         }
 
-        // ── Stage 6: Security Scan ────────────────────────────
         stage('Security Scan') {
             steps {
-                echo '🔒 Scanning for vulnerabilities...'
+                echo '🔒 Scanning images...'
                 sh '''
-                    docker scout cves ${BACKEND_IMAGE}:latest --format json > backend_scan_report.json || echo "Skipping scan"
-                    docker scout cves ${FRONTEND_IMAGE}:latest --format json > frontend_scan_report.json || echo "Skipping scan"
+                    docker scout cves ${BACKEND_IMAGE}:latest || echo "Skipping backend scan"
+                    docker scout cves ${FRONTEND_IMAGE}:latest || echo "Skipping frontend scan"
                 '''
             }
         }
 
-        // ── Stage 7: Deploy with Docker Compose ───────────────
-        stage('Deploy') {
+        stage('Prepare Env') {
             steps {
-                echo '🚀 Deploying application stack...'
-                sh 'docker compose down || true'
-                sh 'docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana crowdfundin-mongo || true'
-                sh 'docker compose up -d --build'
+                echo '⚙️ Preparing .env file...'
+                sh '''
+                    mkdir -p backend
+                    echo "PORT=5000" > backend/.env
+                    echo "MONGO_URI=mongodb://crowdfundin-mongo:27017/app" >> backend/.env
+                '''
             }
         }
 
-        // ── Stage 8: Verify Deployment ────────────────────────
+        stage('Deploy') {
+            steps {
+                echo '🚀 Deploying...'
+                sh '''
+                    docker compose down --remove-orphans || true
+
+                    docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana crowdfundin-mongo || true
+
+                    docker compose up -d --build
+                '''
+            }
+        }
+
         stage('Verify') {
             steps {
-                echo '✅ Verifying deployment...'
-                sh 'sleep 15'
-                sh 'docker exec crowdfundin-backend wget --no-verbose --tries=1 --spider http://127.0.0.1:5000/api/health || exit 1'
-                sh 'docker exec devops-prometheus wget --no-verbose --tries=1 --spider http://127.0.0.1:9090/-/healthy || exit 1'
-                sh 'docker exec devops-grafana wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1'
-                echo '✅ All services are running!'
+                echo '🔍 Verifying services...'
+                sh '''
+                    for i in {1..10}; do
+                        docker exec crowdfundin-backend wget -q --spider http://127.0.0.1:5000/api/health && break
+                        echo "Waiting for backend..."
+                        sleep 5
+                    done
+                '''
+
+                sh '''
+                    docker exec devops-prometheus wget -q --spider http://127.0.0.1:9090/-/healthy
+                    docker exec devops-grafana wget -q --spider http://127.0.0.1:3000/api/health
+                '''
+
+                echo '✅ Deployment successful!'
             }
         }
     }
@@ -125,10 +136,12 @@ pipeline {
         success {
             echo '🎉 Pipeline completed successfully!'
         }
+
         failure {
             echo '❌ Pipeline failed!'
-            sh 'docker compose logs'
+            sh 'docker compose logs || true'
         }
+
         always {
             echo '🧹 Cleanup...'
             sh 'docker system prune -f || true'

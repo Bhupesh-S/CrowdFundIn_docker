@@ -13,6 +13,7 @@ pipeline {
 
     stages {
 
+        // ─────────────────────────────────────────────
         stage('Checkout') {
             steps {
                 echo '📥 Pulling source code...'
@@ -20,6 +21,7 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
         stage('Install Dependencies') {
             steps {
                 echo '📦 Installing dependencies...'
@@ -32,6 +34,7 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
         stage('Test') {
             steps {
                 echo '🧪 Running tests...'
@@ -49,6 +52,7 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
         stage('Docker Build') {
             parallel {
                 stage('Backend') {
@@ -70,6 +74,7 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
         stage('Image Size Report') {
             steps {
                 sh "docker images ${BACKEND_IMAGE}"
@@ -77,32 +82,55 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
         stage('Security Scan') {
             steps {
-                echo '🔒 Scanning images...'
+                echo '🔒 Running Docker Scout...'
                 sh '''
-                    docker scout cves ${BACKEND_IMAGE}:latest || echo "Skipping backend scan"
-                    docker scout cves ${FRONTEND_IMAGE}:latest || echo "Skipping frontend scan"
+                    if docker scout version > /dev/null 2>&1; then
+                        docker scout cves ${BACKEND_IMAGE}:latest || true
+                        docker scout cves ${FRONTEND_IMAGE}:latest || true
+                    else
+                        echo "⚠️ docker scout not installed → skipping"
+                    fi
                 '''
             }
         }
 
-        stage('Prepare Env') {
+        // ─────────────────────────────────────────────
+        stage('Prepare Environment') {
             steps {
-                echo '⚙️ Preparing .env file...'
+                echo '⚙️ Preparing runtime configs...'
                 sh '''
                     mkdir -p backend
-                    echo "PORT=5000" > backend/.env
-                    echo "MONGO_URI=mongodb://crowdfundin-mongo:27017/app" >> backend/.env
+                    mkdir -p prometheus
+
+                    # ✅ Backend ENV (Mongo FIX)
+                    cat <<EOF > backend/.env
+PORT=5000
+MONGO_URI=mongodb://crowdfundin-mongo:27017/app
+EOF
+
+                    # ✅ Prometheus config (CRITICAL FIX)
+                    cat <<EOF > prometheus/prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['crowdfundin-backend:5000']
+EOF
                 '''
             }
         }
 
+        // ─────────────────────────────────────────────
         stage('Deploy') {
             steps {
-                echo '🚀 Deploying...'
+                echo '🚀 Deploying stack...'
                 sh '''
-                    docker compose down --remove-orphans || true
+                    docker compose down --remove-orphans --volumes || true
 
                     docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana crowdfundin-mongo || true
 
@@ -111,11 +139,14 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
         stage('Verify') {
             steps {
                 echo '🔍 Verifying services...'
+
                 sh '''
-                    for i in {1..10}; do
+                    # Wait for backend
+                    for i in {1..12}; do
                         docker exec crowdfundin-backend wget -q --spider http://127.0.0.1:5000/api/health && break
                         echo "Waiting for backend..."
                         sleep 5
@@ -132,6 +163,7 @@ pipeline {
         }
     }
 
+    // ─────────────────────────────────────────────
     post {
         success {
             echo '🎉 Pipeline completed successfully!'

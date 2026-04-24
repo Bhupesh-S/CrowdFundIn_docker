@@ -144,8 +144,8 @@ EOF
 
             sh '''
                 echo "Checking env vars..."
-                echo "MONGO: ${MONGODB_URI:0:20}..."   # debug partial
-                echo "JWT: ${JWT_SECRET:0:5}..."
+                echo "MONGO is set"
+                echo "JWT is set"
 
                 export MONGODB_URI="$MONGODB_URI"
                 export JWT_SECRET="$JWT_SECRET"

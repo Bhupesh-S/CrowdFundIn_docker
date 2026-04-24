@@ -53,7 +53,7 @@ services:
 
     volumes:
       - prometheus-data:/prometheus
-      - ./prometheus:/etc/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'

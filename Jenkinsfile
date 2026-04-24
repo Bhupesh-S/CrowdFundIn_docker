@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     triggers {
-        pollSCM('H/5 * * * *')
+        pollSCM('* * * * *')
     }
 
     environment {
@@ -132,23 +132,26 @@ EOF
         // full backend/.env — written to the workspace so docker compose
         // can read it via env_file. .env is gitignored, this keeps it out of SCM.
         stage('Deploy') {
-            steps {
-                echo '🚀 Deploying stack...'
-                withCredentials([file(credentialsId: 'backend-env-file', variable: 'BACKEND_ENV_FILE')]) {
-                    sh '''
-                        # Write the secret .env into the workspace so compose can read it
-                        cp "$BACKEND_ENV_FILE" backend/.env
+    steps {
+        echo '🚀 Deploying stack...'
 
-                        docker compose down --remove-orphans --volumes || true
+        withCredentials([
+            string(credentialsId: 'mongo-uri', variable: 'MONGODB_URI'),
+            string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
+            string(credentialsId: 'razorpay-key-id', variable: 'RAZORPAY_KEY_ID'),
+            string(credentialsId: 'razorpay-key-secret', variable: 'RAZORPAY_KEY_SECRET')
+        ]) {
 
-                        # Remove any stale named containers (no mongo — Atlas is used)
-                        docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true
+            sh '''
+                docker compose down --remove-orphans --volumes || true
 
-                        docker compose up -d
-                    '''
-                }
-            }
+                docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true
+
+                docker compose up -d
+            '''
         }
+    }
+}
 
         // ─────────────────────────────────────────────
         stage('Verify') {

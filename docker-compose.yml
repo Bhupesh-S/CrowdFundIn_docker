@@ -3,34 +3,32 @@ services:
   # ── Backend ────────────────────────────────────────────────
   # MongoDB Atlas is used — no local mongo container needed.
   backend:
-    image: crowdfundin-backend:latest
-    container_name: crowdfundin-backend
-    ports:
-      - "5000:5000"
+  image: crowdfundin-backend:latest
+  container_name: crowdfundin-backend
+  ports:
+    - "5000:5000"
 
-    # backend/.env is written by the Jenkins pipeline (from a Secret file
-    # credential) before docker compose up runs, so this is safe in CI.
-    # For local dev: just have backend/.env on disk as usual.
-    env_file:
-      - ./backend/.env
+  environment:
+    PORT: 5000
+    NODE_ENV: production
+    MONGODB_URI: ${MONGODB_URI}
+    JWT_SECRET: ${JWT_SECRET}
+    RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+    RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
 
-    environment:
-      PORT:      5000
-      NODE_ENV:  production
+  volumes:
+    - backend-uploads:/app/uploads
 
-    volumes:
-      - backend-uploads:/app/uploads
+  restart: unless-stopped
+  networks:
+    - devops-network
 
-    restart: unless-stopped
-    networks:
-      - devops-network
-
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/api/health"]
-      interval: 15s
-      timeout: 10s
-      retries: 6
-      start_period: 20s
+  healthcheck:
+    test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/api/health"]
+    interval: 15s
+    timeout: 10s
+    retries: 6
+    start_period: 20s
 
 
   # ── Frontend ───────────────────────────────────────────────

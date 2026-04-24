@@ -53,10 +53,10 @@ services:
 
     volumes:
       - prometheus-data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/config.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
-    command:
-      - '--config.file=/etc/prometheus/config.yml'
+    command: 
+      - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'
 
     restart: unless-stopped

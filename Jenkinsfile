@@ -164,29 +164,48 @@ EOF
 
         // ─────────────────────────────────────────────
         stage('Verify') {
-            steps {
-                echo '🔍 Verifying services...'
+    steps {
+        echo '🔍 Verifying services...'
 
-                sh '''
-                    echo "⏳ Waiting for backend to be ready..."
-                    for i in $(seq 1 15); do
-                        if docker exec crowdfundin-backend wget -q --spider http://127.0.0.1:5000/api/health 2>/dev/null; then
-                            echo "✅ Backend is healthy"
-                            break
-                        fi
-                        echo "  attempt $i/15 — sleeping 5s..."
-                        sleep 5
-                    done
-                '''
+        sh '''
+            echo "⏳ Waiting for backend to be ready..."
+            for i in $(seq 1 15); do
+                if docker exec crowdfundin-backend wget -q --spider http://127.0.0.1:5000/api/health 2>/dev/null; then
+                    echo "✅ Backend is healthy"
+                    break
+                fi
+                echo "  attempt $i/15 — sleeping 5s..."
+                sleep 5
+            done
+        '''
 
-                sh '''
-                    docker exec devops-prometheus wget -q --spider http://127.0.0.1:9090/-/healthy && echo "✅ Prometheus OK"
-                    docker exec devops-grafana wget -q --spider http://127.0.0.1:3000/api/health && echo "✅ Grafana OK"
-                '''
+        sh '''
+            echo "⏳ Checking Prometheus..."
+            for i in $(seq 1 10); do
+                if docker exec devops-prometheus wget -q --spider http://127.0.0.1:9090/-/healthy 2>/dev/null; then
+                    echo "✅ Prometheus OK"
+                    break
+                fi
+                echo "  retry $i/10..."
+                sleep 3
+            done
+        '''
 
-                echo '✅ Deployment successful!'
-            }
-        }
+        sh '''
+            echo "⏳ Checking Grafana..."
+            for i in $(seq 1 10); do
+                if docker exec devops-grafana wget -q --spider http://127.0.0.1:3000/api/health 2>/dev/null; then
+                    echo "✅ Grafana OK"
+                    break
+                fi
+                echo "  retry $i/10..."
+                sleep 3
+            done
+        '''
+
+        echo '✅ Deployment successful!'
+    }
+}
     }
 
     // ─────────────────────────────────────────────

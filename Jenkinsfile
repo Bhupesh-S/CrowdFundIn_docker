@@ -86,15 +86,14 @@ scrape_configs:
       - targets: ['crowdfundin-backend:5000']
 EOF
 
-                    # ── ENV FILE (CRITICAL FIX) ──
+                    # ── ENV FILE (ONLY NON-MONGO VARS) ──
                     cat <<EOF > .env
-MONGODB_URI="$MONGODB_URI"
-JWT_SECRET="$JWT_SECRET"
-RAZORPAY_KEY_ID="$RAZORPAY_KEY_ID"
-RAZORPAY_KEY_SECRET="$RAZORPAY_KEY_SECRET"
+JWT_SECRET=$JWT_SECRET
+RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID
+RAZORPAY_KEY_SECRET=$RAZORPAY_KEY_SECRET
 EOF
 
-                    echo "✅ Config + .env ready"
+                    echo "✅ Config ready"
                 '''
             }
         }
@@ -104,20 +103,18 @@ EOF
                 echo '🚀 Deploying...'
 
                 withCredentials([
-                    string(credentialsId: 'mongo-uri', variable: 'MONGODB_URI'),
                     string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
                     string(credentialsId: 'razorpay-key-id', variable: 'RAZORPAY_KEY_ID'),
                     string(credentialsId: 'razorpay-key-secret', variable: 'RAZORPAY_KEY_SECRET')
                 ]) {
 
                     sh '''
-                        export MONGODB_URI
                         export JWT_SECRET
                         export RAZORPAY_KEY_ID
                         export RAZORPAY_KEY_SECRET
 
                         docker compose down --remove-orphans --volumes || true
-                        docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true
+                        docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana crowdfundin-mongo || true
 
                         docker compose up -d
                     '''

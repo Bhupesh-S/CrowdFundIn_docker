@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
 
   # ── Backend ────────────────────────────────────────────────
@@ -7,13 +9,12 @@ services:
     ports:
       - "5000:5000"
 
+    env_file:
+      - .env   # ✅ FIX: ensures env vars are loaded
+
     environment:
       PORT: 5000
       NODE_ENV: production
-      MONGODB_URI: ${MONGODB_URI}
-      JWT_SECRET: ${JWT_SECRET}
-      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
-      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
 
     volumes:
       - backend-uploads:/app/uploads
@@ -36,9 +37,11 @@ services:
     container_name: crowdfundin-frontend
     ports:
       - "3000:8080"
+
     restart: unless-stopped
     networks:
       - devops-network
+
     depends_on:
       backend:
         condition: service_healthy
@@ -53,15 +56,16 @@ services:
 
     volumes:
       - prometheus-data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus:/etc/prometheus   # ✅ FIX (IMPORTANT)
 
-    command: 
+    command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'
 
     restart: unless-stopped
     networks:
       - devops-network
+
     depends_on:
       backend:
         condition: service_healthy
@@ -87,6 +91,7 @@ services:
     restart: unless-stopped
     networks:
       - devops-network
+
     depends_on:
       - prometheus
 

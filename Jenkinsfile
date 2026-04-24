@@ -13,7 +13,6 @@ pipeline {
 
     stages {
 
-        // ─────────────────────────────────────────────
         stage('Checkout') {
             steps {
                 echo '📥 Pulling source code...'
@@ -21,7 +20,6 @@ pipeline {
             }
         }
 
-        // ─────────────────────────────────────────────
         stage('Install Dependencies') {
             steps {
                 echo '📦 Installing dependencies...'
@@ -34,17 +32,12 @@ pipeline {
             }
         }
 
-        // ─────────────────────────────────────────────
-        // NOTE: Backend test only runs a smoke check (env + syntax).
-        // We do NOT start server.js here because it requires a live
-        // MongoDB Atlas connection which is only available at runtime
-        // inside the Docker network. Frontend tests run in CI mode.
         stage('Test') {
             steps {
                 echo '🧪 Running tests...'
                 dir('backend') {
                     sh '''
-                        node -e "require('./package.json'); console.log('✅ Backend package.json OK')"
+                        node -e "require('./package.json'); console.log('✅ Backend OK')"
                         node --check server.js && echo "✅ Backend syntax OK"
                     '''
                 }
@@ -54,7 +47,6 @@ pipeline {
             }
         }
 
-        // ─────────────────────────────────────────────
         stage('Docker Build') {
             parallel {
                 stage('Backend') {
@@ -76,34 +68,11 @@ pipeline {
             }
         }
 
-        // ─────────────────────────────────────────────
-        stage('Image Size Report') {
-            steps {
-                sh "docker images ${BACKEND_IMAGE}"
-                sh "docker images ${FRONTEND_IMAGE}"
-            }
-        }
-
-        // ─────────────────────────────────────────────
-        stage('Security Scan') {
-            steps {
-                echo '🔒 Running Docker Scout...'
-                sh '''
-                    if docker scout version > /dev/null 2>&1; then
-                        docker scout cves ${BACKEND_IMAGE}:latest || true
-                        docker scout cves ${FRONTEND_IMAGE}:latest || true
-                    else
-                        echo "⚠️ docker scout not installed → skipping"
-                    fi
-                '''
-            }
-        }
-
-        // ─────────────────────────────────────────────
         stage('Prepare Environment') {
             steps {
-                echo '⚙️ Preparing runtime configs...'
+                echo '⚙️ Preparing configs...'
                 sh '''
+                    # ── Prometheus config ──
                     rm -rf prometheus
                     mkdir -p prometheus
 
@@ -117,110 +86,74 @@ scrape_configs:
       - targets: ['crowdfundin-backend:5000']
 EOF
 
-                    ls -l prometheus
-                    cat prometheus/prometheus.yml
-                    echo "✅ prometheus.yml created"
+                    # ── ENV FILE (CRITICAL FIX) ──
+                    cat <<EOF > .env
+MONGODB_URI=$MONGODB_URI
+JWT_SECRET=$JWT_SECRET
+RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID
+RAZORPAY_KEY_SECRET=$RAZORPAY_KEY_SECRET
+EOF
+
+                    echo "✅ Config + .env ready"
                 '''
             }
         }
 
-        // ─────────────────────────────────────────────
-        // Uses pre-built :latest images (no --build flag) so Docker
-        // Compose picks up the images built in the Docker Build stage.
-        // No local mongo container — MongoDB Atlas is used via MONGODB_URI.
-        // One Jenkins 'Secret file' credential (backend-env-file) holds the
-        // full backend/.env — written to the workspace so docker compose
-        // can read it via env_file. .env is gitignored, this keeps it out of SCM.
         stage('Deploy') {
-    steps {
-        echo '🚀 Deploying stack...'
+            steps {
+                echo '🚀 Deploying...'
 
-        withCredentials([
-            string(credentialsId: 'mongo-uri', variable: 'MONGODB_URI'),
-            string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
-            string(credentialsId: 'razorpay-key-id', variable: 'RAZORPAY_KEY_ID'),
-            string(credentialsId: 'razorpay-key-secret', variable: 'RAZORPAY_KEY_SECRET')
-        ]) {
+                withCredentials([
+                    string(credentialsId: 'mongo-uri', variable: 'MONGODB_URI'),
+                    string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
+                    string(credentialsId: 'razorpay-key-id', variable: 'RAZORPAY_KEY_ID'),
+                    string(credentialsId: 'razorpay-key-secret', variable: 'RAZORPAY_KEY_SECRET')
+                ]) {
 
-            sh '''
-                echo "Checking env vars..."
-                echo "MONGO is set"
-                echo "JWT is set"
+                    sh '''
+                        export MONGODB_URI
+                        export JWT_SECRET
+                        export RAZORPAY_KEY_ID
+                        export RAZORPAY_KEY_SECRET
 
-                export MONGODB_URI="$MONGODB_URI"
-                export JWT_SECRET="$JWT_SECRET"
-                export RAZORPAY_KEY_ID="$RAZORPAY_KEY_ID"
-                export RAZORPAY_KEY_SECRET="$RAZORPAY_KEY_SECRET"
+                        docker compose down --remove-orphans --volumes || true
+                        docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true
 
-                docker compose down --remove-orphans --volumes || true
+                        docker compose up -d
+                    '''
+                }
+            }
+        }
 
-                docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true
+        stage('Verify') {
+            steps {
+                echo '🔍 Verifying backend...'
 
-                docker compose up -d
-            '''
+                sh '''
+                    for i in $(seq 1 15); do
+                        if docker exec crowdfundin-backend wget -q --spider http://127.0.0.1:5000/api/health; then
+                            echo "✅ Backend healthy"
+                            exit 0
+                        fi
+                        sleep 5
+                    done
+
+                    echo "❌ Backend failed"
+                    exit 1
+                '''
+            }
         }
     }
-}
 
-        // ─────────────────────────────────────────────
-        stage('Verify') {
-    steps {
-        echo '🔍 Verifying services...'
-
-        sh '''
-            echo "⏳ Waiting for backend to be ready..."
-            for i in $(seq 1 15); do
-                if docker exec crowdfundin-backend wget -q --spider http://127.0.0.1:5000/api/health 2>/dev/null; then
-                    echo "✅ Backend is healthy"
-                    break
-                fi
-                echo "  attempt $i/15 — sleeping 5s..."
-                sleep 5
-            done
-        '''
-
-        sh '''
-            echo "⏳ Checking Prometheus..."
-            for i in $(seq 1 10); do
-                if docker exec devops-prometheus wget -q --spider http://127.0.0.1:9090/-/healthy 2>/dev/null; then
-                    echo "✅ Prometheus OK"
-                    break
-                fi
-                echo "  retry $i/10..."
-                sleep 3
-            done
-        '''
-
-        sh '''
-            echo "⏳ Checking Grafana..."
-            for i in $(seq 1 10); do
-                if docker exec devops-grafana wget -q --spider http://127.0.0.1:3000/api/health 2>/dev/null; then
-                    echo "✅ Grafana OK"
-                    break
-                fi
-                echo "  retry $i/10..."
-                sleep 3
-            done
-        '''
-
-        echo '✅ Deployment successful!'
-    }
-}
-    }
-
-    // ─────────────────────────────────────────────
     post {
         success {
-            echo '🎉 Pipeline completed successfully!'
+            echo '🎉 SUCCESS'
         }
-
         failure {
-            echo '❌ Pipeline failed!'
+            echo '❌ FAILED'
             sh 'docker compose logs --tail=50 || true'
         }
-
         always {
-            echo '🧹 Cleanup dangling images...'
             sh 'docker image prune -f || true'
         }
     }

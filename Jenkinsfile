@@ -143,6 +143,15 @@ EOF
         ]) {
 
             sh '''
+                echo "Checking env vars..."
+                echo "MONGO: ${MONGODB_URI:0:20}..."   # debug partial
+                echo "JWT: ${JWT_SECRET:0:5}..."
+
+                export MONGODB_URI="$MONGODB_URI"
+                export JWT_SECRET="$JWT_SECRET"
+                export RAZORPAY_KEY_ID="$RAZORPAY_KEY_ID"
+                export RAZORPAY_KEY_SECRET="$RAZORPAY_KEY_SECRET"
+
                 docker compose down --remove-orphans --volumes || true
 
                 docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana || true

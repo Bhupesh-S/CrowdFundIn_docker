@@ -170,21 +170,24 @@ EOF
                         docker volume create mongo-data
                         echo "✅ mongo-data volume ensured"
 
-                        # ── Remove stale named containers from any previous compose project ──────
+                        # ── Remove ALL stale named containers from any previous compose project ──
                         # Named containers (container_name:) are global to the Docker daemon.
                         # If a prior run used a different compose project name they appear as
-                        # orphans that --no-recreate can't adopt, causing a name-conflict error.
+                        # orphans that cause name-conflict errors on the next compose up.
+                        # Note: prometheus depends_on backend, so even `compose up prometheus`
+                        # tries to create backend — we must clear ALL names up front.
                         # Mongo data is safe: it lives in the external 'mongo-data' named volume.
-                        for ctr in crowdfundin-mongo devops-prometheus devops-grafana; do
+                        for ctr in crowdfundin-mongo crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana; do
                             if docker inspect "$ctr" >/dev/null 2>&1; then
                                 docker rm -f "$ctr" || true
                                 echo "🗑️  Removed stale container: $ctr"
                             fi
                         done
 
-                        # ── Start persistent infrastructure (mongo, prometheus, grafana) ────────
-                        docker compose up -d mongo prometheus grafana
-                        echo "✅ Infrastructure services running"
+                        # ── Bring up the full stack in one shot ───────────────────────────────
+                        # Single call lets compose resolve all depends_on in the right order.
+                        docker compose up -d
+                        echo "✅ All services running"
                     '''
 
                     // ── Selectively restart only the changed app service(s) ────────────────

@@ -68,15 +68,23 @@ pipeline {
             }
         }
 
-        stage('Prepare Environment') {
+        stage('Prepare & Deploy') {
             steps {
-                echo '⚙️ Preparing configs...'
-                sh '''
-                    # ── Prometheus config ──
-                    rm -rf prometheus
-                    mkdir -p prometheus
+                echo '🚀 Deploying...'
 
-                    cat <<EOF > prometheus/prometheus.yml
+                withCredentials([
+                    string(credentialsId: 'jwt-secret',            variable: 'JWT_SECRET'),
+                    string(credentialsId: 'razorpay-key-id',       variable: 'RAZORPAY_KEY_ID'),
+                    string(credentialsId: 'razorpay-key-secret',   variable: 'RAZORPAY_KEY_SECRET'),
+                    string(credentialsId: 'email-user',            variable: 'EMAIL_USER'),
+                    string(credentialsId: 'email-pass',            variable: 'EMAIL_PASS')
+                ]) {
+                    sh '''
+                        # ── Prometheus config ──
+                        rm -rf prometheus
+                        mkdir -p prometheus
+
+                        cat <<EOF > prometheus/prometheus.yml
 global:
   scrape_interval: 15s
 
@@ -86,32 +94,19 @@ scrape_configs:
       - targets: ['crowdfundin-backend:5000']
 EOF
 
-                    # ── ENV FILE (ONLY NON-MONGO VARS) ──
-                    cat <<EOF > .env
-JWT_SECRET=$JWT_SECRET
-RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID
-RAZORPAY_KEY_SECRET=$RAZORPAY_KEY_SECRET
+                        # ── Root .env for docker compose variable substitution ──
+                        # Must be written INSIDE withCredentials so vars are populated
+                        cat <<EOF > .env
+JWT_SECRET=${JWT_SECRET}
+RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+EMAIL_USER=${EMAIL_USER}
+EMAIL_PASS=${EMAIL_PASS}
+FRONTEND_URL=http://localhost:3000
+MAX_FILE_SIZE=5000000
 EOF
 
-                    echo "✅ Config ready"
-                '''
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo '🚀 Deploying...'
-
-                withCredentials([
-                    string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
-                    string(credentialsId: 'razorpay-key-id', variable: 'RAZORPAY_KEY_ID'),
-                    string(credentialsId: 'razorpay-key-secret', variable: 'RAZORPAY_KEY_SECRET')
-                ]) {
-
-                    sh '''
-                        export JWT_SECRET
-                        export RAZORPAY_KEY_ID
-                        export RAZORPAY_KEY_SECRET
+                        echo "✅ Config ready"
 
                         docker compose down --remove-orphans --volumes || true
                         docker rm -f crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana crowdfundin-mongo || true

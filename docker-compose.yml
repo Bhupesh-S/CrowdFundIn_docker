@@ -24,15 +24,19 @@ services:
     ports:
       - "5000:5000"
 
-    # ✅ Load all secrets (JWT_SECRET, RAZORPAY, EMAIL, etc.) from host .env
-    env_file:
-      - ./backend/.env
-
+    # ✅ All secrets injected via environment block from root .env (written by Jenkins)
     environment:
       PORT: 5000
       NODE_ENV: production
-      # Override MongoDB URI to use Docker service name (not Atlas)
       MONGODB_URI: mongodb://mongo:27017/crowdfundin
+      JWT_SECRET: ${JWT_SECRET}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-5000000}
+      UPLOAD_PATH: ./uploads
 
     volumes:
       - backend-uploads:/app/uploads

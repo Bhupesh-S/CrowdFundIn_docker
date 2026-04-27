@@ -4,8 +4,10 @@ COPY package*.json ./
 # Copy pre-installed node_modules from Jenkins workspace (avoids npm install
 # inside Docker where the build daemon may have no outbound internet/DNS access)
 COPY node_modules ./node_modules
+# Copy source (node_modules excluded via .dockerignore so they don't overwrite above)
 COPY . .
-RUN npm run build
+# Increase heap to prevent OOM kill on Alpine during React compilation
+RUN NODE_OPTIONS=--max-old-space-size=1536 npm run build
 
 FROM nginx:alpine
 

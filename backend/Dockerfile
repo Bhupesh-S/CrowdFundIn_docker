@@ -1,11 +1,8 @@
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-
 FROM node:18-alpine
 WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
+# Copy pre-installed node_modules from Jenkins workspace (avoids npm install
+# inside Docker where the build daemon may have no outbound internet/DNS access)
+COPY node_modules ./node_modules
 COPY . .
 
 # Fix permission for uploads directory

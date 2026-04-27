@@ -1,7 +1,9 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+# Copy pre-installed node_modules from Jenkins workspace (avoids npm install
+# inside Docker where the build daemon may have no outbound internet/DNS access)
+COPY node_modules ./node_modules
 COPY . .
 RUN npm run build
 

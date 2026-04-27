@@ -24,10 +24,10 @@ pipeline {
             steps {
                 echo '📦 Installing dependencies...'
                 dir('backend') {
-                    sh 'npm install'
+                    sh 'npm install --prefer-offline || npm install'
                 }
                 dir('frontend') {
-                    sh 'npm install --legacy-peer-deps || npm install'
+                    sh 'npm install --legacy-peer-deps --prefer-offline || npm install --legacy-peer-deps'
                 }
             }
         }
@@ -42,7 +42,7 @@ pipeline {
                     '''
                 }
                 dir('frontend') {
-                    sh 'CI=true npm test || true'
+                    sh 'CI=true npm test -- --passWithNoTests || true'
                 }
             }
         }

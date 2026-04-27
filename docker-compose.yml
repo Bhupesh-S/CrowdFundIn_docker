@@ -116,7 +116,8 @@ services:
 
     volumes:
       - prometheus-data:/prometheus
-      - ./prometheus:/etc/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
 
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'

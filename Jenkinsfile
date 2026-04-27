@@ -145,19 +145,10 @@ pipeline {
                     string(credentialsId: 'razorpay-key-secret',   variable: 'RAZORPAY_KEY_SECRET')
                 ]) {
                     sh '''
-                        # ── Prometheus config ──
-                        rm -rf prometheus
-                        mkdir -p prometheus
-
-                        cat <<EOF > prometheus/prometheus.yml
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: 'backend'
-    static_configs:
-      - targets: ['crowdfundin-backend:5000']
-EOF
+                        # ── Prometheus config is committed to the repo ──
+                        # docker-compose.yml bind-mounts prometheus/prometheus.yml
+                        # and prometheus/alerts.yml directly — no need to regenerate.
+                        echo "✅ Prometheus config ready (from repo)"
 
                         # ── Root .env for docker compose variable substitution ──
                         cat <<EOF > .env
@@ -179,10 +170,20 @@ EOF
                         docker volume create mongo-data
                         echo "✅ mongo-data volume ensured"
 
+                        # ── Remove stale named containers from any previous compose project ──────
+                        # Named containers (container_name:) are global to the Docker daemon.
+                        # If a prior run used a different compose project name they appear as
+                        # orphans that --no-recreate can't adopt, causing a name-conflict error.
+                        # Mongo data is safe: it lives in the external 'mongo-data' named volume.
+                        for ctr in crowdfundin-mongo devops-prometheus devops-grafana; do
+                            if docker inspect "$ctr" >/dev/null 2>&1; then
+                                docker rm -f "$ctr" || true
+                                echo "🗑️  Removed stale container: $ctr"
+                            fi
+                        done
+
                         # ── Start persistent infrastructure (mongo, prometheus, grafana) ────────
-                        # Uses --no-recreate so already-running containers are LEFT UNTOUCHED.
-                        # MongoDB data is preserved across every build.
-                        docker compose up -d --no-recreate mongo prometheus grafana
+                        docker compose up -d mongo prometheus grafana
                         echo "✅ Infrastructure services running"
                     '''
 
@@ -193,21 +194,21 @@ EOF
                             sh '''
                                 docker compose stop backend frontend || true
                                 docker rm -f crowdfundin-backend crowdfundin-frontend || true
-                                docker compose up -d --no-recreate backend frontend
+                                docker compose up -d backend frontend
                             '''
                         } else if (env.BACKEND_CHANGED == 'true') {
                             echo '🚀 Restarting BACKEND container only...'
                             sh '''
                                 docker compose stop backend || true
                                 docker rm -f crowdfundin-backend || true
-                                docker compose up -d --no-recreate backend
+                                docker compose up -d backend
                             '''
                         } else if (env.FRONTEND_CHANGED == 'true') {
                             echo '🚀 Restarting FRONTEND container only...'
                             sh '''
                                 docker compose stop frontend || true
                                 docker rm -f crowdfundin-frontend || true
-                                docker compose up -d --no-recreate frontend
+                                docker compose up -d frontend
                             '''
                         } else {
                             echo '⏭️  No app changes detected — skipping container restart.'

@@ -75,9 +75,7 @@ pipeline {
                 withCredentials([
                     string(credentialsId: 'jwt-secret',            variable: 'JWT_SECRET'),
                     string(credentialsId: 'razorpay-key-id',       variable: 'RAZORPAY_KEY_ID'),
-                    string(credentialsId: 'razorpay-key-secret',   variable: 'RAZORPAY_KEY_SECRET'),
-                    string(credentialsId: 'email-user',            variable: 'EMAIL_USER'),
-                    string(credentialsId: 'email-pass',            variable: 'EMAIL_PASS')
+                    string(credentialsId: 'razorpay-key-secret',   variable: 'RAZORPAY_KEY_SECRET')
                 ]) {
                     sh '''
                         # ── Prometheus config ──
@@ -95,13 +93,13 @@ scrape_configs:
 EOF
 
                         # ── Root .env for docker compose variable substitution ──
-                        # Must be written INSIDE withCredentials so vars are populated
+                        # Must be written INSIDE withCredentials so JWT/Razorpay vars are populated
                         cat <<EOF > .env
 JWT_SECRET=${JWT_SECRET}
 RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
 RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
-EMAIL_USER=${EMAIL_USER}
-EMAIL_PASS=${EMAIL_PASS}
+EMAIL_USER=bharanidharank.23cse@kongu.edu
+EMAIL_PASS=wweekjioehjiappg
 FRONTEND_URL=http://localhost:3000
 MAX_FILE_SIZE=5000000
 EOF

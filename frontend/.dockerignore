@@ -6,3 +6,23 @@ build
 npm-debug.log*
 .DS_Store
 coverage
+
+# Source test files — not needed in build context
+*.test.*
+*.spec.*
+__tests__/
+
+# Documentation
+*.md
+
+# Editor & VCS metadata
+.git
+.gitignore
+.vscode
+
+# Docker files themselves
+Dockerfile
+nginx.conf
+
+# Example env files
+.env.example

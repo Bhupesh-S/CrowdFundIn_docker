@@ -1,19 +1,32 @@
-FROM node:18-alpine AS build
+# ── Stage 1: Build React SPA ──────────────────────────────────────────────────
+FROM node:18.20-alpine3.20 AS build
+
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+
+# npm ci: reproducible, faster, and strictly follows package-lock.json
+RUN npm ci --legacy-peer-deps
+
 COPY . .
+
 # Increase heap to prevent OOM kill on Alpine during React compilation
 RUN NODE_OPTIONS=--max-old-space-size=1536 npm run build
 
-FROM nginx:alpine
 
-# Security: Remove default configuration and set up custom non-root configuration
+# ── Stage 2: Serve with minimal, hardened Nginx ───────────────────────────────
+FROM nginx:1.27-alpine
+
+LABEL org.opencontainers.image.title="CrowdFundIn Frontend" \
+      org.opencontainers.image.description="React SPA served via hardened Nginx for CrowdFundIn" \
+      org.opencontainers.image.base.name="nginx:1.27-alpine"
+
+# Remove the default Nginx configuration
 RUN rm -rf /etc/nginx/conf.d/*
-COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/build /usr/share/nginx/html
 
+# Hand ownership of all nginx-writable paths to the nginx user
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
@@ -22,6 +35,8 @@ RUN chown -R nginx:nginx /usr/share/nginx/html && \
     touch /var/run/nginx.pid && \
     chown -R nginx:nginx /var/run/nginx.pid
 
+# Security: run as non-root nginx user
 USER nginx
+
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]

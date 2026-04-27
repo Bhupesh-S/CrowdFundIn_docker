@@ -1,8 +1,8 @@
 services:
 
-  # ── MongoDB (NEW) ──────────────────────────────────────────
+  # ── MongoDB ──────────────────────────────────────────────────────────────────
   mongo:
-    image: mongo:6
+    image: mongo:6.0
     container_name: crowdfundin-mongo
 
     ports:
@@ -11,12 +11,18 @@ services:
     volumes:
       - mongo-data:/data/db
 
+    security_opt:
+      - no-new-privileges:true
+
+    mem_limit: 512m
+    cpus: "0.5"
+
     restart: unless-stopped
     networks:
       - devops-network
 
 
-  # ── Backend ────────────────────────────────────────────────
+  # ── Backend ───────────────────────────────────────────────────────────────────
   backend:
     image: crowdfundin-backend:latest
     container_name: crowdfundin-backend
@@ -24,7 +30,6 @@ services:
     ports:
       - "5000:5000"
 
-    # ✅ All secrets injected via environment block from root .env (written by Jenkins)
     environment:
       PORT: 5000
       NODE_ENV: production
@@ -40,6 +45,15 @@ services:
 
     volumes:
       - backend-uploads:/app/uploads
+
+    # ── Runtime security hardening ────────────────────────────────────────────
+    security_opt:
+      - no-new-privileges:true   # Prevent privilege escalation via setuid binaries
+    cap_drop:
+      - ALL                      # Drop all Linux capabilities; node process needs none
+
+    mem_limit: 512m
+    cpus: "1.0"
 
     restart: unless-stopped
     networks:
@@ -57,13 +71,31 @@ services:
       start_period: 20s
 
 
-  # ── Frontend ───────────────────────────────────────────────
+  # ── Frontend ──────────────────────────────────────────────────────────────────
   frontend:
     image: crowdfundin-frontend:latest
     container_name: crowdfundin-frontend
 
     ports:
       - "3000:8080"
+
+    # ── Runtime security hardening ────────────────────────────────────────────
+    security_opt:
+      - no-new-privileges:true   # Prevent privilege escalation
+
+    cap_drop:
+      - ALL                      # Nginx on port 8080 (>1024) needs no capabilities
+
+    # Read-only root filesystem — static files never change at runtime.
+    # Nginx temp and runtime dirs are provided as in-memory tmpfs mounts.
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:mode=755,size=64m   # Nginx proxy and client body temp
+      - /var/run:mode=755,size=1m            # nginx.pid
+      - /tmp:mode=755,size=32m               # Misc temp files
+
+    mem_limit: 128m
+    cpus: "0.5"
 
     restart: unless-stopped
     networks:
@@ -74,9 +106,9 @@ services:
         condition: service_healthy
 
 
-  # ── Prometheus ─────────────────────────────────────────────
+  # ── Prometheus ────────────────────────────────────────────────────────────────
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.52.0     # Pinned — avoids silent breakage from :latest
     container_name: devops-prometheus
 
     ports:
@@ -90,6 +122,12 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'
 
+    security_opt:
+      - no-new-privileges:true
+
+    mem_limit: 512m
+    cpus: "0.5"
+
     restart: unless-stopped
     networks:
       - devops-network
@@ -99,9 +137,9 @@ services:
         condition: service_healthy
 
 
-  # ── Grafana ────────────────────────────────────────────────
+  # ── Grafana ───────────────────────────────────────────────────────────────────
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.0.0      # Pinned — avoids silent breakage from :latest
     container_name: devops-grafana
 
     ports:
@@ -109,13 +147,20 @@ services:
 
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin123
+      # Password sourced from env — set GF_SECURITY_ADMIN_PASSWORD in Jenkins .env
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-GrafanaAdmin@2024}
       GF_USERS_ALLOW_SIGN_UP: false
 
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
+
+    security_opt:
+      - no-new-privileges:true
+
+    mem_limit: 256m
+    cpus: "0.5"
 
     restart: unless-stopped
     networks:
@@ -129,7 +174,10 @@ volumes:
   backend-uploads:
   prometheus-data:
   grafana-data:
-  mongo-data:   # ✅ NEW
+  # External volume — Docker Compose will NEVER delete this, even with `down --volumes`.
+  # Created automatically by Jenkins on first run: `docker volume create mongo-data`
+  mongo-data:
+    external: true
 
 networks:
   devops-network:

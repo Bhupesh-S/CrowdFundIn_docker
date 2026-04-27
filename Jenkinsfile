@@ -52,7 +52,7 @@ pipeline {
                 stage('Backend') {
                     steps {
                         sh """
-                        docker build -f backend/Dockerfile -t ${BACKEND_IMAGE}:${DOCKER_TAG} backend/
+                        docker build --network=host -f backend/Dockerfile -t ${BACKEND_IMAGE}:${DOCKER_TAG} backend/
                         docker tag ${BACKEND_IMAGE}:${DOCKER_TAG} ${BACKEND_IMAGE}:latest
                         """
                     }
@@ -60,7 +60,7 @@ pipeline {
                 stage('Frontend') {
                     steps {
                         sh """
-                        docker build -f frontend/Dockerfile -t ${FRONTEND_IMAGE}:${DOCKER_TAG} frontend/
+                        docker build --network=host -f frontend/Dockerfile -t ${FRONTEND_IMAGE}:${DOCKER_TAG} frontend/
                         docker tag ${FRONTEND_IMAGE}:${DOCKER_TAG} ${FRONTEND_IMAGE}:latest
                         """
                     }

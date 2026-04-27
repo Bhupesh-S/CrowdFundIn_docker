@@ -24,11 +24,14 @@ services:
     ports:
       - "5000:5000"
 
+    # ✅ Load all secrets (JWT_SECRET, RAZORPAY, EMAIL, etc.) from host .env
+    env_file:
+      - ./backend/.env
+
     environment:
       PORT: 5000
       NODE_ENV: production
-
-      # ✅ CRITICAL FIX (no more Atlas/env issues)
+      # Override MongoDB URI to use Docker service name (not Atlas)
       MONGODB_URI: mongodb://mongo:27017/crowdfundin
 
     volumes:

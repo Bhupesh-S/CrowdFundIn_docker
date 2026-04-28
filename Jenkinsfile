@@ -6,9 +6,10 @@ pipeline {
     }
 
     environment {
-        BACKEND_IMAGE  = 'crowdfundin-backend'
-        FRONTEND_IMAGE = 'crowdfundin-frontend'
-        DOCKER_TAG     = "${env.BUILD_NUMBER}"
+        BACKEND_IMAGE     = 'crowdfundin-backend'
+        FRONTEND_IMAGE    = 'crowdfundin-frontend'
+        PROMETHEUS_IMAGE  = 'crowdfundin-prometheus'
+        DOCKER_TAG        = "${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -101,8 +102,16 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
+                    // Prometheus image is always rebuilt — it only contains config
+                    // files (FROM + 2 COPYs) so it builds in seconds. This ensures
+                    // any prometheus.yml/alerts.yml change is always picked up.
+                    echo '🐳 Building Prometheus config image...'
+                    sh """
+                    docker build -f prometheus/Dockerfile -t ${PROMETHEUS_IMAGE}:latest prometheus/
+                    """
+
                     if (env.BACKEND_CHANGED == 'true' && env.FRONTEND_CHANGED == 'true') {
-                        echo '🐳 Building both images in parallel...'
+                        echo '🐳 Building both app images in parallel...'
                         parallel(
                             'Backend': {
                                 sh """
@@ -130,7 +139,7 @@ pipeline {
                         docker tag ${FRONTEND_IMAGE}:${DOCKER_TAG} ${FRONTEND_IMAGE}:latest
                         """
                     } else {
-                        echo '⏭️  No service changes detected — skipping Docker build.'
+                        echo '⏭️  No app changes — skipping backend/frontend builds.'
                     }
                 }
             }
@@ -145,18 +154,9 @@ pipeline {
                     string(credentialsId: 'razorpay-key-secret',   variable: 'RAZORPAY_KEY_SECRET')
                 ]) {
                     sh '''
-                        # ── Prometheus config sanity check ──
-                        # We bind-mount the entire ./prometheus/ directory (not individual files)
-                        # to avoid the Docker socket path-resolution issue that auto-creates
-                        # bind-mount sources as directories when they don't exist on the host.
-                        for cfg in prometheus/prometheus.yml prometheus/alerts.yml; do
-                            if [ ! -f "$cfg" ]; then
-                                echo "⚠️  $cfg missing — restoring from git"
-                                git checkout HEAD -- "$cfg"
-                            fi
-                            echo "✅ $cfg OK ($(stat -c '%s bytes' $cfg))"
-                        done
-                        echo "✅ Prometheus config ready (from repo)"
+                        # ── Prometheus config is baked into crowdfundin-prometheus:latest ──
+                        # No bind mounts = no Docker socket host-path issues.
+                        echo "✅ Prometheus config embedded in image (built in Docker Build stage)"
 
                         # ── Root .env for docker compose variable substitution ──
                         cat <<EOF > .env

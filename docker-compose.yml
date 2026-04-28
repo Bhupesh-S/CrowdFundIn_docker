@@ -108,19 +108,21 @@ services:
 
   # ── Prometheus ────────────────────────────────────────────────────────────────
   prometheus:
-    image: prom/prometheus:v2.52.0     # Pinned — avoids silent breakage from :latest
+    # Build a custom image with the config baked in.
+    # This eliminates ALL bind mounts for Prometheus — the only reliable approach
+    # when Jenkins uses the host Docker socket, since the Docker daemon resolves
+    # bind-mount source paths on the HOST, not inside the Jenkins container.
+    build:
+      context: ./prometheus
+      dockerfile: Dockerfile
+    image: crowdfundin-prometheus:latest
     container_name: devops-prometheus
 
     ports:
       - "9090:9090"
 
     volumes:
-      - prometheus-data:/prometheus
-      # Mount the entire directory rather than individual files.
-      # File-level bind mounts fail when Jenkins uses the host Docker socket
-      # (Docker daemon resolves source paths on the HOST and auto-creates a
-      # directory when the path doesn't exist there, causing "not a directory").
-      - ./prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus   # metrics storage only; config is in the image
 
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'

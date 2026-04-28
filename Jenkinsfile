@@ -145,21 +145,16 @@ pipeline {
                     string(credentialsId: 'razorpay-key-secret',   variable: 'RAZORPAY_KEY_SECRET')
                 ]) {
                     sh '''
-                        # ── Prometheus config: ensure bind-mount sources are regular FILES ──
-                        # Docker can leave a stale directory at the source path if a previous
-                        # run failed mid-flight, causing the "not a directory" OCI error.
-                        # We restore from git to guarantee the correct file type.
+                        # ── Prometheus config sanity check ──
+                        # We bind-mount the entire ./prometheus/ directory (not individual files)
+                        # to avoid the Docker socket path-resolution issue that auto-creates
+                        # bind-mount sources as directories when they don't exist on the host.
                         for cfg in prometheus/prometheus.yml prometheus/alerts.yml; do
-                            if [ -d "$cfg" ]; then
-                                echo "⚠️  $cfg is a directory (stale Docker artifact) — removing and restoring from git"
-                                rm -rf "$cfg"
-                                git checkout HEAD -- "$cfg"
-                            fi
                             if [ ! -f "$cfg" ]; then
                                 echo "⚠️  $cfg missing — restoring from git"
                                 git checkout HEAD -- "$cfg"
                             fi
-                            echo "✅ $cfg is a regular file ($(stat -c '%s bytes' $cfg))"
+                            echo "✅ $cfg OK ($(stat -c '%s bytes' $cfg))"
                         done
                         echo "✅ Prometheus config ready (from repo)"
 

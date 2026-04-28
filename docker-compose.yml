@@ -116,8 +116,11 @@ services:
 
     volumes:
       - prometheus-data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      # Mount the entire directory rather than individual files.
+      # File-level bind mounts fail when Jenkins uses the host Docker socket
+      # (Docker daemon resolves source paths on the HOST and auto-creates a
+      # directory when the path doesn't exist there, causing "not a directory").
+      - ./prometheus:/etc/prometheus:ro
 
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'

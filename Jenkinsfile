@@ -145,9 +145,22 @@ pipeline {
                     string(credentialsId: 'razorpay-key-secret',   variable: 'RAZORPAY_KEY_SECRET')
                 ]) {
                     sh '''
-                        # ── Prometheus config is committed to the repo ──
-                        # docker-compose.yml bind-mounts prometheus/prometheus.yml
-                        # and prometheus/alerts.yml directly — no need to regenerate.
+                        # ── Prometheus config: ensure bind-mount sources are regular FILES ──
+                        # Docker can leave a stale directory at the source path if a previous
+                        # run failed mid-flight, causing the "not a directory" OCI error.
+                        # We restore from git to guarantee the correct file type.
+                        for cfg in prometheus/prometheus.yml prometheus/alerts.yml; do
+                            if [ -d "$cfg" ]; then
+                                echo "⚠️  $cfg is a directory (stale Docker artifact) — removing and restoring from git"
+                                rm -rf "$cfg"
+                                git checkout HEAD -- "$cfg"
+                            fi
+                            if [ ! -f "$cfg" ]; then
+                                echo "⚠️  $cfg missing — restoring from git"
+                                git checkout HEAD -- "$cfg"
+                            fi
+                            echo "✅ $cfg is a regular file ($(stat -c '%s bytes' $cfg))"
+                        done
                         echo "✅ Prometheus config ready (from repo)"
 
                         # ── Root .env for docker compose variable substitution ──

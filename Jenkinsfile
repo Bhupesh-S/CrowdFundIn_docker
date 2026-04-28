@@ -6,13 +6,35 @@ pipeline {
     }
 
     environment {
-        BACKEND_IMAGE     = 'crowdfundin-backend'
-        FRONTEND_IMAGE    = 'crowdfundin-frontend'
-        PROMETHEUS_IMAGE  = 'crowdfundin-prometheus'
-        DOCKER_TAG        = "${env.BUILD_NUMBER}"
+        BACKEND_IMAGE        = 'crowdfundin-backend'
+        FRONTEND_IMAGE       = 'crowdfundin-frontend'
+        PROMETHEUS_IMAGE     = 'crowdfundin-prometheus'
+        DOCKER_TAG           = "${env.BUILD_NUMBER}"
+        // Fix: set a stable project name so compose container names are predictable
+        COMPOSE_PROJECT_NAME = 'devops'
     }
 
     stages {
+
+        // ── Ensure docker compose (V2 plugin) is usable ───────────────────────
+        stage('Bootstrap') {
+            steps {
+                sh '''
+                    # Try V2 plugin first (docker compose), then V1 standalone (docker-compose)
+                    if docker compose version > /dev/null 2>&1; then
+                        echo "✅ docker compose (V2) available: $(docker compose version)"
+                        echo "V2" > /tmp/compose_cmd
+                    elif command -v docker-compose > /dev/null 2>&1; then
+                        echo "✅ docker-compose (V1) available: $(docker-compose --version)"
+                        echo "V1" > /tmp/compose_cmd
+                    else
+                        echo "❌ Neither docker compose nor docker-compose is available!"
+                        docker info
+                        exit 1
+                    fi
+                '''
+            }
+        }
 
         stage('Checkout') {
             steps {
@@ -25,9 +47,6 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
-                    // Compare current commit with the previous one.
-                    // On the very first build (no previous commit) we fall back
-                    // to treating both as changed.
                     def prevCommit = sh(
                         script: 'git rev-parse HEAD~1 2>/dev/null || echo ""',
                         returnStdout: true
@@ -102,9 +121,6 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
-                    // Prometheus image is always rebuilt — it only contains config
-                    // files (FROM + 2 COPYs) so it builds in seconds. This ensures
-                    // any prometheus.yml/alerts.yml change is always picked up.
                     echo '🐳 Building Prometheus config image...'
                     sh """
                     docker build -f prometheus/Dockerfile -t ${PROMETHEUS_IMAGE}:latest prometheus/
@@ -154,11 +170,9 @@ pipeline {
                     string(credentialsId: 'razorpay-key-secret',   variable: 'RAZORPAY_KEY_SECRET')
                 ]) {
                     sh '''
-                        # ── Prometheus config is baked into crowdfundin-prometheus:latest ──
-                        # No bind mounts = no Docker socket host-path issues.
                         echo "✅ Prometheus config embedded in image (built in Docker Build stage)"
 
-                        # ── Root .env for docker compose variable substitution ──
+                        # ── Root .env for compose variable substitution ──────────────────────
                         cat <<EOF > .env
 JWT_SECRET=${JWT_SECRET}
 RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
@@ -168,58 +182,71 @@ EMAIL_PASS=wweekjioehjiappg
 FRONTEND_URL=http://localhost:3000
 MAX_FILE_SIZE=5000000
 EOF
-
                         echo "✅ Config ready"
 
-                        # ── Ensure the external mongo-data volume exists ────────────────────────
-                        # `docker volume create` is idempotent: safe to run on every build.
-                        # Because mongo-data is marked external in docker-compose.yml,
-                        # `docker compose down --volumes` can NEVER delete it.
+                        # ── Ensure the external mongo-data volume exists ─────────────────────
                         docker volume create mongo-data
                         echo "✅ mongo-data volume ensured"
 
-                        # ── Remove ALL stale named containers from any previous compose project ──
-                        # Named containers (container_name:) are global to the Docker daemon.
-                        # If a prior run used a different compose project name they appear as
-                        # orphans that cause name-conflict errors on the next compose up.
-                        # Note: prometheus depends_on backend, so even `compose up prometheus`
-                        # tries to create backend — we must clear ALL names up front.
-                        # Mongo data is safe: it lives in the external 'mongo-data' named volume.
+                        # ── Remove ALL stale named containers ────────────────────────────────
                         for ctr in crowdfundin-mongo crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana; do
-                            if docker inspect "$ctr" >/dev/null 2>&1; then
+                            if docker inspect "$ctr" > /dev/null 2>&1; then
                                 docker rm -f "$ctr" || true
                                 echo "🗑️  Removed stale container: $ctr"
                             fi
                         done
 
-                        # ── Bring up the full stack in one shot ───────────────────────────────
-                        # Single call lets compose resolve all depends_on in the right order.
-                        docker-compose up -d
+                        # ── Bring up the full stack ───────────────────────────────────────────
+                        # Use V2 plugin if available, else fall back to V1 standalone
+                        if docker compose version > /dev/null 2>&1; then
+                            docker compose up -d
+                        else
+                            docker-compose up -d
+                        fi
                         echo "✅ All services running"
                     '''
 
                     // ── Selectively restart only the changed app service(s) ────────────────
                     script {
+                        def composeCmd = 'docker compose version > /dev/null 2>&1 && echo "docker compose" || echo "docker-compose"'
                         if (env.BACKEND_CHANGED == 'true' && env.FRONTEND_CHANGED == 'true') {
                             echo '🚀 Restarting BOTH app containers...'
                             sh '''
-                                docker-compose stop backend frontend || true
-                                docker rm -f crowdfundin-backend crowdfundin-frontend || true
-                                docker-compose up -d backend frontend
+                                if docker compose version > /dev/null 2>&1; then
+                                    docker compose stop backend frontend || true
+                                    docker rm -f crowdfundin-backend crowdfundin-frontend || true
+                                    docker compose up -d backend frontend
+                                else
+                                    docker-compose stop backend frontend || true
+                                    docker rm -f crowdfundin-backend crowdfundin-frontend || true
+                                    docker-compose up -d backend frontend
+                                fi
                             '''
                         } else if (env.BACKEND_CHANGED == 'true') {
                             echo '🚀 Restarting BACKEND container only...'
                             sh '''
-                                docker-compose stop backend || true
-                                docker rm -f crowdfundin-backend || true
-                                docker-compose up -d backend
+                                if docker compose version > /dev/null 2>&1; then
+                                    docker compose stop backend || true
+                                    docker rm -f crowdfundin-backend || true
+                                    docker compose up -d backend
+                                else
+                                    docker-compose stop backend || true
+                                    docker rm -f crowdfundin-backend || true
+                                    docker-compose up -d backend
+                                fi
                             '''
                         } else if (env.FRONTEND_CHANGED == 'true') {
                             echo '🚀 Restarting FRONTEND container only...'
                             sh '''
-                                docker-compose stop frontend || true
-                                docker rm -f crowdfundin-frontend || true
-                                docker-compose up -d frontend
+                                if docker compose version > /dev/null 2>&1; then
+                                    docker compose stop frontend || true
+                                    docker rm -f crowdfundin-frontend || true
+                                    docker compose up -d frontend
+                                else
+                                    docker-compose stop frontend || true
+                                    docker rm -f crowdfundin-frontend || true
+                                    docker-compose up -d frontend
+                                fi
                             '''
                         } else {
                             echo '⏭️  No app changes detected — skipping container restart.'
@@ -258,7 +285,14 @@ EOF
         }
         failure {
             echo '❌ Pipeline FAILED'
-            sh 'docker-compose logs --tail=50 || true'
+            sh '''
+                if docker compose version > /dev/null 2>&1; then
+                    docker compose ps || true
+                elif command -v docker-compose > /dev/null 2>&1; then
+                    docker-compose ps || true
+                fi
+                docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || true
+            '''
         }
         always {
             sh 'docker image prune -f || true'

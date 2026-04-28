@@ -155,7 +155,7 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       # Password sourced from env — set GF_SECURITY_ADMIN_PASSWORD in Jenkins .env
       GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-GrafanaAdmin@2024}
-      GF_USERS_ALLOW_SIGN_UP: false
+      GF_USERS_ALLOW_SIGN_UP: "false"
 
     volumes:
       - grafana-data:/var/lib/grafana

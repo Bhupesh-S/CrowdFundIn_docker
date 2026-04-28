@@ -194,7 +194,7 @@ EOF
 
                         # ── Bring up the full stack in one shot ───────────────────────────────
                         # Single call lets compose resolve all depends_on in the right order.
-                        docker compose up -d
+                        docker-compose up -d
                         echo "✅ All services running"
                     '''
 
@@ -203,23 +203,23 @@ EOF
                         if (env.BACKEND_CHANGED == 'true' && env.FRONTEND_CHANGED == 'true') {
                             echo '🚀 Restarting BOTH app containers...'
                             sh '''
-                                docker compose stop backend frontend || true
+                                docker-compose stop backend frontend || true
                                 docker rm -f crowdfundin-backend crowdfundin-frontend || true
-                                docker compose up -d backend frontend
+                                docker-compose up -d backend frontend
                             '''
                         } else if (env.BACKEND_CHANGED == 'true') {
                             echo '🚀 Restarting BACKEND container only...'
                             sh '''
-                                docker compose stop backend || true
+                                docker-compose stop backend || true
                                 docker rm -f crowdfundin-backend || true
-                                docker compose up -d backend
+                                docker-compose up -d backend
                             '''
                         } else if (env.FRONTEND_CHANGED == 'true') {
                             echo '🚀 Restarting FRONTEND container only...'
                             sh '''
-                                docker compose stop frontend || true
+                                docker-compose stop frontend || true
                                 docker rm -f crowdfundin-frontend || true
-                                docker compose up -d frontend
+                                docker-compose up -d frontend
                             '''
                         } else {
                             echo '⏭️  No app changes detected — skipping container restart.'
@@ -258,7 +258,7 @@ EOF
         }
         failure {
             echo '❌ Pipeline FAILED'
-            sh 'docker compose logs --tail=50 || true'
+            sh 'docker-compose logs --tail=50 || true'
         }
         always {
             sh 'docker image prune -f || true'

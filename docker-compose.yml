@@ -24,6 +24,9 @@ services:
 
   # ── Backend ───────────────────────────────────────────────────────────────────
   backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     image: crowdfundin-backend:latest
     container_name: crowdfundin-backend
 
@@ -73,6 +76,9 @@ services:
 
   # ── Frontend ──────────────────────────────────────────────────────────────────
   frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     image: crowdfundin-frontend:latest
     container_name: crowdfundin-frontend
 
@@ -104,6 +110,35 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
+
+  # ── Jenkins CI/CD ─────────────────────────────────────────────────────────────
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    container_name: devops-jenkins
+    user: root                          # Needed to access Docker socket
+
+    ports:
+      - "8080:8080"                     # Web UI
+      - "50000:50000"                   # Agent JNLP port
+
+    environment:
+      JAVA_OPTS: "-Xmx512m"
+
+    volumes:
+      - jenkins-data:/var/jenkins_home              # Persist jobs, plugins, configs
+      - /var/run/docker.sock:/var/run/docker.sock   # Allow Jenkins to run Docker cmds
+      - /usr/bin/docker:/usr/bin/docker             # Docker CLI binary
+
+    security_opt:
+      - no-new-privileges:true
+
+    mem_limit: 1g
+    cpus: "1.0"
+
+    restart: unless-stopped
+    networks:
+      - devops-network
 
 
   # ── Prometheus ────────────────────────────────────────────────────────────────
@@ -180,10 +215,9 @@ volumes:
   backend-uploads:
   prometheus-data:
   grafana-data:
-  # External volume — Docker Compose will NEVER delete this, even with `down --volumes`.
-  # Created automatically by Jenkins on first run: `docker volume create mongo-data`
+  jenkins-data:
+  # Named volume — auto-created on first run on any machine (EC2 or local)
   mongo-data:
-    external: true
 
 networks:
   devops-network:

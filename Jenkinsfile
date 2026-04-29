@@ -188,9 +188,15 @@ EOF
                         docker volume create mongo-data
                         echo "✅ mongo-data volume ensured"
 
-                        # ── Remove ALL stale named containers ────────────────────────────────
-                        for ctr in crowdfundin-mongo crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana; do
-                            if docker inspect "$ctr" > /dev/null 2>&1; then
+                        # ── Remove ALL stale named containers from any previous compose project ──
+                        # Named containers (container_name:) are global to the Docker daemon.
+                        # If a prior run used a different compose project name they appear as
+                        # orphans that cause name-conflict errors on the next compose up.
+                        # Note: prometheus depends_on backend, so even `compose up prometheus`
+                        # tries to create backend — we must clear ALL names up front.
+                        # Mongo data is safe: it lives in the external 'mongo-data' named volume.
+                        for ctr in crowdfundin-mongo crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana devops-jenkins; do
+                            if docker inspect "$ctr" >/dev/null 2>&1; then
                                 docker rm -f "$ctr" || true
                                 echo "🗑️  Removed stale container: $ctr"
                             fi

@@ -1,92 +1,154 @@
 # ═══════════════════════════════════════════════════════════════
-# Ansible — Application Deployment Playbook
-# Automates Docker build, deploy, and verification
+# Ansible — CrowdFundIn Deployment Playbook (AWS EC2)
+# Strategy: rsync local project to EC2 (faster than git clone)
+# then docker compose up
 # ═══════════════════════════════════════════════════════════════
 
 ---
-- name: Deploy DevOps Demo Application
+- name: Deploy CrowdFundIn to AWS EC2
   hosts: app_servers
-  become: no
+  become: yes
 
   vars:
-    app_name: devops-app
+    project_name: crowdfundin
+    project_dir: /home/ubuntu/devops-main-1
+    local_project_dir: "{{ playbook_dir }}/../"
     app_port: 3000
-    docker_image: "devops-app:optimized"
-    project_dir: /tmp/devops-ansible
 
   tasks:
-    # ── Pre-requisites ─────────────────────────────────────────
-    # Removed setup tasks requiring root, relying on existing docker installation.
 
-    # ── Deploy Application ─────────────────────────────────────
-    - name: Create project directory
+    # ── Pre-requisites ─────────────────────────────────────────
+    - name: Wait for SSH to be available
+      wait_for_connection:
+        delay: 5
+        timeout: 60
+      tags: always
+
+    - name: Verify Docker is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+      tags: setup
+
+    - name: Ensure project directory exists
       file:
         path: "{{ project_dir }}"
         state: directory
+        owner: ubuntu
+        group: ubuntu
         mode: '0755'
       tags: deploy
 
-    - name: Copy application files
-      copy:
-        src: "{{ playbook_dir }}/../"
+    # ── Sync Project Files ────────────────────────────────────
+    - name: Sync project files to EC2 (rsync — fast, skips .git & node_modules)
+      synchronize:
+        src: "{{ local_project_dir }}"
         dest: "{{ project_dir }}/"
-        mode: '0644'
+        delete: yes
+        recursive: yes
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=node_modules"
+          - "--exclude=jenkins-cli.jar"
+          - "--exclude=terraform/.terraform"
+          - "--exclude=terraform/*.tfstate*"
+          - "--exclude=terraform/terraform.tfvars"
+          - "--exclude=*.pem"
+          - "--exclude=.env"
+          - "--exclude=prometheus-data"
+          - "--exclude=grafana-data"
       tags: deploy
 
-    - name: Start application stack with Docker Compose
+    - name: Set correct ownership on project directory
+      file:
+        path: "{{ project_dir }}"
+        owner: ubuntu
+        group: ubuntu
+        recurse: yes
+      tags: deploy
+
+    # ── Write .env file ────────────────────────────────────────
+    - name: Create .env file on remote server
+      copy:
+        dest: "{{ project_dir }}/.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+        content: |
+          MONGODB_URI={{ mongodb_uri }}
+          JWT_SECRET={{ jwt_secret }}
+          NODE_ENV=production
+          VITE_API_URL=http://{{ ansible_host }}:5000
+          RAZORPAY_KEY_ID=rzp_test_RPU47z8z3YzA53
+          RAZORPAY_KEY_SECRET=hEfb56TfcNovEqVFj3RVpWxh
+          EMAIL_USER=bharanidharank.23cse@kongu.edu
+          EMAIL_PASS=wweekjioehjiappg
+          FRONTEND_URL=http://{{ ansible_host }}:3000
+          MAX_FILE_SIZE=5000000
+      tags: deploy
+
+    # ── Docker Compose ─────────────────────────────────────────
+    - name: Stop existing containers (clean slate)
+      command: docker compose down --remove-orphans
+      args:
+        chdir: "{{ project_dir }}"
+      become_user: ubuntu
+      ignore_errors: yes
+      tags: deploy
+
+    - name: Build and start application stack
       command: docker compose up -d --build
       args:
         chdir: "{{ project_dir }}"
+      become_user: ubuntu
       tags: deploy
 
     # ── Verification ───────────────────────────────────────────
-    - name: Wait for application to start
+    - name: Wait for frontend to be ready
       wait_for:
+        host: localhost
         port: "{{ app_port }}"
-        delay: 5
-        timeout: 30
+        delay: 10
+        timeout: 120
       tags: verify
 
-    - name: Health check
-      uri:
-        url: "http://localhost:{{ app_port }}/health"
-        return_content: yes
-      register: health_result
+    - name: Wait for Jenkins to start (port 8080)
+      wait_for:
+        host: localhost
+        port: 8080
+        delay: 15
+        timeout: 180
       tags: verify
 
-    - name: Display health check result
-      debug:
-        msg: "App Health: {{ health_result.json }}"
+    - name: Get Jenkins initial admin password
+      command: docker exec devops-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+      register: jenkins_password
+      ignore_errors: yes
+      become_user: ubuntu
       tags: verify
 
-    - name: Verify non-root user in container
-      command: docker exec {{ app_name }} whoami
-      register: whoami_result
+    - name: Show running containers
+      command: docker ps --format "table {% raw %}{{.Names}}\t{{.Status}}\t{{.Ports}}{% endraw %}"
+      register: docker_ps
+      become_user: ubuntu
       tags: verify
 
-    - name: Display running user
-      debug:
-        msg: "Container runs as: {{ whoami_result.stdout }}"
-      tags: verify
-
-    # ── Monitoring Check ───────────────────────────────────────
-    - name: Verify Prometheus is accessible
-      uri:
-        url: "http://localhost:9090/-/healthy"
-        return_content: yes
-      register: prom_result
-      tags: verify
-
-    - name: Verify Grafana is accessible
-      uri:
-        url: "http://localhost:3001/api/health"
-        return_content: yes
-      register: grafana_result
-      tags: verify
-
-    - name: Display monitoring status
+    - name: Display deployment summary
       debug:
         msg: |
-          Prometheus: {{ prom_result.status }}
-          Grafana: {{ grafana_result.status }}
+          ═══════════════════════════════════
+           CrowdFundIn Deployment Complete!
+          ═══════════════════════════════════
+          Frontend   → http://{{ ansible_host }}:3000
+          Backend    → http://{{ ansible_host }}:5000
+          Jenkins    → http://{{ ansible_host }}:8080
+          Prometheus → http://{{ ansible_host }}:9090
+          Grafana    → http://{{ ansible_host }}:3001
+          ───────────────────────────────────
+          Jenkins Initial Admin Password:
+          {{ jenkins_password.stdout | default('(already configured — check jenkins-data volume)') }}
+          ───────────────────────────────────
+          Containers:
+          {{ docker_ps.stdout }}
       tags: verify

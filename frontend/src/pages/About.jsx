@@ -9,7 +9,7 @@ const About = () => {
         <section className="about-hero">
           <h1 className="about-title">About CrowdFundIn</h1>
           <p className="about-subtitle">
-            Empowering dreams through collective support
+            Empowering dreams through collective support!
           </p>
         </section>
 

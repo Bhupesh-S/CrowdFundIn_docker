@@ -16,9 +16,17 @@ const DonationForm = ({ campaign, onSuccess }) => {
   // Load Razorpay script
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
+      // Already loaded and ready
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
       const existingScript = document.getElementById('razorpay-script');
       if (existingScript) {
-        resolve(true);
+        // Script tag exists but hasn't finished loading yet — wait for it
+        existingScript.onload = () => resolve(true);
+        existingScript.onerror = () => resolve(false);
         return;
       }
 

@@ -6,7 +6,7 @@ COPY package*.json ./
 
 # npm ci: faster, reproducible, and strictly respects package-lock.json
 # --omit=dev: excludes devDependencies (nodemon etc.) from the production install
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 
 # ── Stage 2: Lean runtime image ───────────────────────────────────────────────

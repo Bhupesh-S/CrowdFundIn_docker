@@ -195,7 +195,7 @@ EOF
                         # Note: prometheus depends_on backend, so even `compose up prometheus`
                         # tries to create backend — we must clear ALL names up front.
                         # Mongo data is safe: it lives in the external 'mongo-data' named volume.
-                        for ctr in crowdfundin-mongo crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana devops-jenkins; do
+                        for ctr in crowdfundin-mongo crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana; do
                             if docker inspect "$ctr" >/dev/null 2>&1; then
                                 docker rm -f "$ctr" || true
                                 echo "🗑️  Removed stale container: $ctr"

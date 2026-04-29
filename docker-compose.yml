@@ -195,8 +195,8 @@ services:
 
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - /home/bhupesh/devops-main-1/grafana/provisioning:/etc/grafana/provisioning
+      - /home/bhupesh/devops-main-1/grafana/dashboards:/var/lib/grafana/dashboards
 
     security_opt:
       - no-new-privileges:true

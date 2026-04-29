@@ -195,7 +195,7 @@ EOF
                         # Note: prometheus depends_on backend, so even `compose up prometheus`
                         # tries to create backend — we must clear ALL names up front.
                         # Mongo data is safe: it lives in the external 'mongo-data' named volume.
-                        for ctr in crowdfundin-mongo crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana; do
+                        for ctr in crowdfundin-backend crowdfundin-frontend devops-prometheus devops-grafana; do
                             if docker inspect "$ctr" >/dev/null 2>&1; then
                                 docker rm -f "$ctr" || true
                                 echo "🗑️  Removed stale container: $ctr"
@@ -204,10 +204,11 @@ EOF
 
                         # ── Bring up only app and monitoring services ─────────────────────────
                         # Avoid bringing up jenkins to prevent name conflict since we are inside it
+                        # Exclude mongo to prevent restarting it and keep storage intact
                         if docker compose version > /dev/null 2>&1; then
-                            docker compose up -d mongo backend frontend prometheus grafana
+                            docker compose up -d backend frontend prometheus grafana
                         else
-                            docker-compose up -d mongo backend frontend prometheus grafana
+                            docker-compose up -d backend frontend prometheus grafana
                         fi
                         echo "✅ All services running"
                     '''

@@ -1,0 +1,225 @@
+services:
+
+  # ── MongoDB ──────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:6.0
+    container_name: crowdfundin-mongo
+
+    ports:
+      - "27017:27017"
+
+    volumes:
+      - mongo-data:/data/db
+
+    security_opt:
+      - no-new-privileges:true
+
+    mem_limit: 512m
+    cpus: "0.5"
+
+    restart: unless-stopped
+    networks:
+      - devops-network
+
+
+  # ── Backend ───────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.original
+    image: crowdfundin-backend:original
+    container_name: crowdfundin-backend
+
+    ports:
+      - "5000:5000"
+
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      MONGODB_URI: mongodb://mongo:27017/crowdfundin
+      JWT_SECRET: ${JWT_SECRET}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-5000000}
+      UPLOAD_PATH: ./uploads
+
+    volumes:
+      - backend-uploads:/app/uploads
+
+    # ── Runtime security hardening ────────────────────────────────────────────
+    security_opt:
+      - no-new-privileges:true   # Prevent privilege escalation via setuid binaries
+    cap_drop:
+      - ALL                      # Drop all Linux capabilities; node process needs none
+
+    mem_limit: 512m
+    cpus: "1.0"
+
+    restart: unless-stopped
+    networks:
+      - devops-network
+
+    depends_on:
+      mongo:
+        condition: service_started
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 6
+      start_period: 20s
+
+
+  # ── Frontend ──────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.original
+    image: crowdfundin-frontend:original
+    container_name: crowdfundin-frontend
+
+    ports:
+      - "3000:8080"
+
+    # ── Runtime security hardening ────────────────────────────────────────────
+    security_opt:
+      - no-new-privileges:true   # Prevent privilege escalation
+
+    cap_drop:
+      - ALL                      # Nginx on port 8080 (>1024) needs no capabilities
+
+    # Read-only root filesystem — static files never change at runtime.
+    # Nginx temp and runtime dirs are provided as in-memory tmpfs mounts.
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:mode=755,uid=101,gid=101,size=64m   # Nginx proxy and client body temp
+      - /var/run:mode=755,uid=101,gid=101,size=1m            # nginx.pid
+      - /tmp:mode=755,uid=101,gid=101,size=32m               # Misc temp files
+
+    mem_limit: 128m
+    cpus: "0.5"
+
+    restart: unless-stopped
+    networks:
+      - devops-network
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+
+  # ── Jenkins CI/CD ─────────────────────────────────────────────────────────────
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    container_name: devops-jenkins
+    user: root                          # Needed to access Docker socket
+
+    ports:
+      - "8080:8080"                     # Web UI
+      - "50000:50000"                   # Agent JNLP port
+
+    environment:
+      JAVA_OPTS: "-Xmx512m"
+
+    volumes:
+      - jenkins-data:/var/jenkins_home              # Persist jobs, plugins, configs
+      - /var/run/docker.sock:/var/run/docker.sock   # Allow Jenkins to run Docker cmds
+      - /usr/bin/docker:/usr/bin/docker             # Docker CLI binary
+      - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins # Docker Compose plugin
+
+    security_opt:
+      - no-new-privileges:true
+
+    mem_limit: 1g
+    cpus: "1.0"
+
+    restart: unless-stopped
+    networks:
+      - devops-network
+
+
+  # ── Prometheus ────────────────────────────────────────────────────────────────
+  prometheus:
+    # Build a custom image with the config baked in.
+    # This eliminates ALL bind mounts for Prometheus — the only reliable approach
+    # when Jenkins uses the host Docker socket, since the Docker daemon resolves
+    # bind-mount source paths on the HOST, not inside the Jenkins container.
+    build:
+      context: ./prometheus
+      dockerfile: Dockerfile.original
+    image: crowdfundin-prometheus:latest
+    container_name: devops-prometheus
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - prometheus-data:/prometheus   # metrics storage only; config is in the image
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+
+    security_opt:
+      - no-new-privileges:true
+
+    mem_limit: 512m
+    cpus: "0.5"
+
+    restart: unless-stopped
+    networks:
+      - devops-network
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+
+  # ── Grafana ───────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.0.0      # Pinned — avoids silent breakage from :latest
+    container_name: devops-grafana
+
+    ports:
+      - "3001:3000"
+
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      # Password sourced from env — set GF_SECURITY_ADMIN_PASSWORD in Jenkins .env
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-GrafanaAdmin@2024}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - /home/bhupesh/devops-main-1/grafana/provisioning:/etc/grafana/provisioning
+      - /home/bhupesh/devops-main-1/grafana/dashboards:/var/lib/grafana/dashboards
+
+    security_opt:
+      - no-new-privileges:true
+
+    mem_limit: 256m
+    cpus: "0.5"
+
+    restart: unless-stopped
+    networks:
+      - devops-network
+
+    depends_on:
+      - prometheus
+
+
+volumes:
+  backend-uploads:
+  prometheus-data:
+  grafana-data:
+  jenkins-data:
+  # Named volume — auto-created on first run on any machine (EC2 or local)
+  mongo-data:
+
+networks:
+  devops-network:
+    driver: bridge

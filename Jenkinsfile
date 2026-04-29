@@ -121,11 +121,6 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
-                    sh """
-                        echo "=== DOCKER IMAGE SIZE COMPARISON (BEFORE) ==="
-                        docker images --filter "reference=${BACKEND_IMAGE}:latest" --format "Original Backend size: {{.Size}}" || true
-                        docker images --filter "reference=${FRONTEND_IMAGE}:latest" --format "Original Frontend size: {{.Size}}" || true
-                    """
                     echo '🐳 Building Prometheus config image...'
                     sh """
                     docker build -f prometheus/Dockerfile -t ${PROMETHEUS_IMAGE}:latest prometheus/
@@ -162,22 +157,6 @@ pipeline {
                     } else {
                         echo '⏭️  No app changes — skipping backend/frontend builds.'
                     }
-
-                    sh """
-                        echo "=== DOCKER IMAGE SIZE COMPARISON (AFTER) ==="
-                        docker images --filter "reference=${BACKEND_IMAGE}:latest" --format "Optimized Backend size: {{.Size}}" || true
-                        docker images --filter "reference=${FRONTEND_IMAGE}:latest" --format "Optimized Frontend size: {{.Size}}" || true
-                        
-                        echo "=== SECURITY IMPROVEMENTS SUMMARY ==="
-                        echo "The following security hardening steps were applied:"
-                        echo " - Non-root user enforcement applied via multistage builds."
-                        echo " - Dropping of unnecessary Linux capabilities (cap_drop ALL)."
-                        echo " - Read-only root filesystems enforced where applicable."
-                        echo " - Privilege escalation blocked via no-new-privileges."
-                        
-                        echo "=== SECURITY POSTURE SUMMARY ==="
-                        echo "Post-Build: Production images hardened, minimized footprint, and capability restricted."
-                    """
                 }
             }
         }

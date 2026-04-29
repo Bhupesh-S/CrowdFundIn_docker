@@ -129,6 +129,7 @@ services:
       - jenkins-data:/var/jenkins_home              # Persist jobs, plugins, configs
       - /var/run/docker.sock:/var/run/docker.sock   # Allow Jenkins to run Docker cmds
       - /usr/bin/docker:/usr/bin/docker             # Docker CLI binary
+      - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins # Docker Compose plugin
 
     security_opt:
       - no-new-privileges:true

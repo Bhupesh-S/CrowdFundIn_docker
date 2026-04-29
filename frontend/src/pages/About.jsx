@@ -7,7 +7,7 @@ const About = () => {
       <div className="container">
         {/* Hero Section */}
         <section className="about-hero">
-          <h1 className="about-title">About CrowdFundIn</h1>
+          <h1 className="about-title">About CrowdFundIn Platform</h1>
           <p className="about-subtitle">
             Empowering dreams through collective support!!
           </p>

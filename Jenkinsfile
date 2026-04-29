@@ -202,12 +202,12 @@ EOF
                             fi
                         done
 
-                        # ── Bring up the full stack ───────────────────────────────────────────
-                        # Use V2 plugin if available, else fall back to V1 standalone
+                        # ── Bring up only app and monitoring services ─────────────────────────
+                        # Avoid bringing up jenkins to prevent name conflict since we are inside it
                         if docker compose version > /dev/null 2>&1; then
-                            docker compose up -d
+                            docker compose up -d mongo backend frontend prometheus grafana
                         else
-                            docker-compose up -d
+                            docker-compose up -d mongo backend frontend prometheus grafana
                         fi
                         echo "✅ All services running"
                     '''
